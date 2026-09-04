@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sliders, Users, Clock, Flame, RotateCcw, Check, Sparkles, Hourglass } from 'lucide-react';
+import { X, Sliders, Users, Clock, Flame, RotateCcw, Check, Sparkles, Hourglass, Grid, Circle, Square } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { playClick } from '../../utils/sound';
 
@@ -12,6 +12,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
   const [intermissionDuration, setIntermissionDuration] = useState(roomState?.intermissionDuration || 5);
   const [votingDuration, setVotingDuration] = useState(roomState?.votingDuration || 30);
   const [maxRounds, setMaxRounds] = useState(roomState?.maxRounds || 5);
+  const [whiteboardPattern, setWhiteboardPattern] = useState(roomState?.whiteboardPattern || 'dotted');
   const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
@@ -26,7 +27,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
         drawChances: Number(drawChances),
         intermissionDuration: Number(intermissionDuration),
         votingDuration: Number(votingDuration),
-        maxRounds: Number(maxRounds)
+        maxRounds: Number(maxRounds),
+        whiteboardPattern
       });
       onClose();
     } catch (e) {
@@ -44,6 +46,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
     setIntermissionDuration(5);
     setVotingDuration(30);
     setMaxRounds(5);
+    setWhiteboardPattern('dotted');
   };
 
   return (
@@ -210,6 +213,49 @@ export const SettingsModal = ({ isOpen, onClose }) => {
               onChange={(e) => setMaxPlayers(e.target.value)}
               className="w-full accent-zinc-200 cursor-pointer h-1.5 bg-zinc-950 rounded appearance-none"
             />
+          </div>
+
+          {/* 6. Whiteboard Pattern Selector (Author sets for everybody) */}
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center justify-between text-xs">
+              <label className="font-medium text-zinc-300 flex items-center gap-1.5">
+                <Grid className="w-3.5 h-3.5 text-zinc-500" />
+                Whiteboard Paper Pattern
+              </label>
+              <span className="font-mono text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 text-[11px] capitalize">
+                {whiteboardPattern}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'dotted', label: 'Dots', icon: Circle, desc: 'Dotted paper' },
+                { id: 'grid', label: 'Grid', icon: Grid, desc: 'Graph grid' },
+                { id: 'clean', label: 'Clean', icon: Square, desc: 'Pure white' }
+              ].map(({ id, label, icon: Icon, desc }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setWhiteboardPattern(id);
+                  }}
+                  className={`p-2.5 rounded-xl border text-xs flex flex-col items-center gap-1 transition cursor-pointer ${
+                    whiteboardPattern === id
+                      ? 'bg-zinc-100 text-zinc-900 border-white font-semibold shadow-sm'
+                      : 'bg-zinc-950 hover:bg-zinc-800/80 text-zinc-400 hover:text-zinc-200 border-zinc-800'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="font-medium text-xs">{label}</span>
+                  <span className={`text-[10px] ${whiteboardPattern === id ? 'text-zinc-600' : 'text-zinc-500'}`}>
+                    {desc}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-zinc-500">
+              Synced to all players in the room during drawing & voting.
+            </p>
           </div>
         </div>
 

@@ -25,10 +25,12 @@ const MainContent = () => {
         )}
       </main>
 
-      {/* Minimal Footer */}
-      <footer className="w-full py-4 text-center text-xs text-zinc-500 font-mono border-t border-zinc-900">
-        <p>From Luxvore Studio</p>
-      </footer>
+      {/* Minimal Footer - only shown in lobby/landing, hidden during active game */}
+      {(!roomState || roomState.phase === 'LOBBY') && (
+        <footer className="w-full py-4 text-center text-xs text-zinc-500 font-mono border-t border-zinc-900">
+          <p>From Luxvore Studio</p>
+        </footer>
+      )}
     </div>
   );
 };

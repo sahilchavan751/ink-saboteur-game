@@ -9,18 +9,16 @@ import { VotingResultsPhase } from './VotingResultsPhase';
 import { EjectionReveal } from './EjectionReveal';
 import { RevealPhase } from './RevealPhase';
 import { GameOverPodium } from './GameOverPodium';
-import { ProximityChatBar } from './ProximityChatBar';
 
 export const GameView = () => {
   const { roomState } = useGameSocket();
-  const proximity = useProximity();
 
   if (!roomState) return null;
 
   const phase = roomState.phase;
 
   return (
-    <div className="w-full relative min-h-[calc(100vh-3.5rem)] pb-16">
+    <div className="w-full relative min-h-[calc(100vh-3.5rem)] pb-4">
       {/* 1. ROLE REVEAL Phase */}
       {phase === 'ROLE_REVEAL' && (
         <>
@@ -49,19 +47,6 @@ export const GameView = () => {
 
       {/* 7. GAME OVER Podium */}
       {phase === 'GAME_OVER' && <GameOverPodium />}
-
-      {/* Proximity Voice & Whisper Dock */}
-      {phase !== 'GAME_OVER' && (
-        <ProximityChatBar
-          isProximityEnabled={proximity.isProximityEnabled}
-          toggleProximity={proximity.toggleProximity}
-          isMuted={proximity.isMuted}
-          toggleMute={proximity.toggleMute}
-          isSpeaking={proximity.isSpeaking}
-          micError={proximity.micError}
-          sendProximityMessage={proximity.sendProximityMessage}
-        />
-      )}
     </div>
   );
 };

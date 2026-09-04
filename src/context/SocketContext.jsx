@@ -12,7 +12,7 @@ import {
   serverTimestamp
 } from 'firebase/database';
 import { db } from '../firebase';
-import { getRandomPromptPair } from '../utils/promptBank';
+import { getRandomPromptPair, getShuffledPromptPair } from '../utils/promptBank';
 import { playStrokeSound, playTick, playReveal } from '../utils/sound';
 
 const GameContext = createContext(null);
@@ -348,7 +348,8 @@ export const SocketProvider = ({ children }) => {
   const startNewRound = async (activeRoomCode, currentData) => {
     const roomRef = ref(db, `rooms/${activeRoomCode}`);
     const nextRoundNum = (currentData.currentRound || 0) + 1;
-    const pair = getRandomPromptPair();
+    const usedPrompts = currentData.usedPrompts || [];
+    const { pair, updatedUsed } = getShuffledPromptPair(usedPrompts);
     const playerIds = Object.keys(currentData.players || {});
     
     // Shuffle turn order so order varies each round
@@ -384,6 +385,7 @@ export const SocketProvider = ({ children }) => {
       votes: null,
       roundResults: null,
       isTieBreaker: false,
+      usedPrompts: updatedUsed,
       lastActivity: Date.now(),
       ...playerRoundUpdates
     });
@@ -592,6 +594,8 @@ export const SocketProvider = ({ children }) => {
       intermissionDuration: 5,
       maxPlayers: 8,
       timeRemaining: 0,
+      whiteboardPattern: 'dotted',
+      usedPrompts: [],
       players: {
         [myPlayerId]: {
           id: myPlayerId,
@@ -708,6 +712,7 @@ export const SocketProvider = ({ children }) => {
       votingDuration: Number(settings.votingDuration),
       intermissionDuration: Number(settings.intermissionDuration),
       maxRounds: Number(settings.maxRounds),
+      whiteboardPattern: settings.whiteboardPattern || 'dotted',
       lastActivity: Date.now()
     });
     return { success: true };

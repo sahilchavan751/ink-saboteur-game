@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Grid, Circle, Square } from 'lucide-react';
+
 import { useGameSocket } from '../../context/SocketContext';
 import { useProximity } from '../../context/ProximityContext';
 import { playStrokeSound } from '../../utils/sound';
@@ -11,25 +11,11 @@ export const CanvasBoard = ({
   isInteractive = true,
   brushSize = 5
 }) => {
-  const { strokes, drawStroke, sendCursor, remoteCursors, notifyInkDepleted, socket } = useGameSocket();
+  const { strokes, drawStroke, sendCursor, remoteCursors, notifyInkDepleted, socket, roomState } = useGameSocket();
   const { isProximityEnabled, speakingPeers, proximityMessages, localCursor, setLocalCursor } = useProximity();
 
-  // Whiteboard pattern setting: 'dotted' | 'grid' | 'clean'
-  const [pattern, setPattern] = useState(() => {
-    return localStorage.getItem('ink_saboteur_board_pattern') || 'dotted';
-  });
-
-  const canvasRef = useRef(null);
-  const containerRef = useRef(null);
-  const isDrawingRef = useRef(false);
-  const lastPosRef = useRef(null);
-  const lastDrawTimeRef = useRef(null);
-  const soundThrottleRef = useRef(0);
-
-  const handlePatternChange = (newPattern) => {
-    setPattern(newPattern);
-    localStorage.setItem('ink_saboteur_board_pattern', newPattern);
-  };
+  // Whiteboard pattern set authoritatively by room settings: 'dotted' | 'grid' | 'clean'
+  const pattern = roomState?.whiteboardPattern || 'dotted';
 
   // Render Whiteboard: Pure White with optional Dotted / Grid / Clean background
   const redrawCanvas = useCallback(() => {
@@ -187,59 +173,11 @@ export const CanvasBoard = ({
   };
 
   return (
-    <div className="space-y-2">
-      {/* Canvas Top Bar: Whiteboard pattern selector */}
-      <div className="flex items-center justify-between px-1 text-xs">
-        <span className="font-mono text-zinc-400 text-[11px] uppercase tracking-wider">
-          Shared Whiteboard
-        </span>
-        <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 p-0.5 rounded-lg">
-          <button
-            type="button"
-            onClick={() => handlePatternChange('dotted')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
-              pattern === 'dotted'
-                ? 'bg-zinc-800 text-white font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-            title="Dotted paper pattern"
-          >
-            <Circle className="w-2.5 h-2.5 fill-current" />
-            Dots
-          </button>
-          <button
-            type="button"
-            onClick={() => handlePatternChange('grid')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
-              pattern === 'grid'
-                ? 'bg-zinc-800 text-white font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-            title="Grid pattern"
-          >
-            <Grid className="w-2.5 h-2.5" />
-            Grid
-          </button>
-          <button
-            type="button"
-            onClick={() => handlePatternChange('clean')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
-              pattern === 'clean'
-                ? 'bg-zinc-800 text-white font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-            title="Plain blank white"
-          >
-            <Square className="w-2.5 h-2.5" />
-            Clean
-          </button>
-        </div>
-      </div>
-
-      {/* The Whiteboard Frame */}
+    <div className="w-full h-full flex flex-col">
+      {/* The Whiteboard Frame - Maximized and responsive */}
       <div
         ref={containerRef}
-        className="relative w-full aspect-[4/3] sm:aspect-[16/10] max-h-[620px] bg-white rounded-2xl border border-zinc-300 shadow-sm overflow-hidden canvas-wrapper touch-none"
+        className="relative w-full flex-1 aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto min-h-[460px] sm:min-h-[520px] lg:min-h-[620px] max-h-[780px] bg-white rounded-2xl border border-zinc-300 shadow-sm overflow-hidden canvas-wrapper touch-none"
       >
         <canvas
           ref={canvasRef}

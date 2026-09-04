@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Sliders, Play, Users, Clock, Flame, ShieldAlert, Share2, Hourglass } from 'lucide-react';
+import { Copy, Check, Sliders, Play, Users, Clock, Flame, ShieldAlert, Share2, Hourglass, Grid } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { SettingsModal } from './SettingsModal';
 import { PlayerGridSkeleton } from '../common/SkeletonLoader';
@@ -216,12 +216,21 @@ export const RoomLobby = () => {
                 </span>
                 <span className="text-zinc-200 font-medium">{roomState.votingDuration}s</span>
               </div>
-              <div className="flex items-center justify-between py-1">
+              <div className="flex items-center justify-between py-1 border-b border-zinc-800/60">
                 <span className="text-zinc-500 flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5" />
                   Total Rounds:
                 </span>
                 <span className="text-zinc-200 font-medium">{roomState.maxRounds} Rounds</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-zinc-500 flex items-center gap-1.5">
+                  <Grid className="w-3.5 h-3.5" />
+                  Whiteboard Paper:
+                </span>
+                <span className="text-zinc-200 font-medium capitalize">
+                  {roomState.whiteboardPattern || 'Dotted'}
+                </span>
               </div>
             </div>
           </div>

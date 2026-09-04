@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { BatteryCharging, BatteryWarning, AlertCircle } from 'lucide-react';
 import { playInkEmpty } from '../../utils/sound';
 
-export const InkBatteryBar = ({ inkRemaining, maxInk, playerColor }) => {
+export const InkBatteryBar = ({ inkRemaining, maxInk, playerColor, compact = false }) => {
   const percent = Math.max(0, Math.min(100, (inkRemaining / maxInk) * 100));
   const isLow = percent <= 25 && percent > 0;
   const isEmpty = percent <= 0;
@@ -15,10 +15,43 @@ export const InkBatteryBar = ({ inkRemaining, maxInk, playerColor }) => {
     prevEmptyRef.current = isEmpty;
   }, [isEmpty]);
 
-  // Clean solid color for the bar
+  // Clean dynamic bar color
   let barColor = 'bg-zinc-100';
-  if (isLow) barColor = 'bg-amber-500';
+  if (isLow) barColor = 'bg-amber-400';
   if (isEmpty) barColor = 'bg-rose-500';
+
+  if (compact) {
+    return (
+      <div
+        className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs shadow-inner"
+        title={`Ink Battery: ${(inkRemaining / 1000).toFixed(1)}s remaining of ${(maxInk / 1000).toFixed(0)}s`}
+      >
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isEmpty ? (
+            <AlertCircle className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+          ) : isLow ? (
+            <BatteryWarning className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
+          ) : (
+            <BatteryCharging className="w-3.5 h-3.5 text-zinc-400" />
+          )}
+          <span className="font-mono text-[10px] text-zinc-500 uppercase hidden sm:inline">Ink</span>
+        </div>
+
+        {/* Smooth Linear Progress Bar Track */}
+        <div className="w-14 sm:w-20 h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800 shrink-0">
+          <div
+            className={`h-full ${barColor} transition-[width] duration-1000 ease-linear rounded-full`}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+
+        {/* Digits Display */}
+        <span className="font-mono text-xs font-semibold text-zinc-200 min-w-[24px] text-right shrink-0">
+          {isEmpty ? '0s' : `${Math.ceil(inkRemaining / 1000)}s`}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3">
@@ -57,10 +90,10 @@ export const InkBatteryBar = ({ inkRemaining, maxInk, playerColor }) => {
         </div>
       </div>
 
-      {/* Solid Battery Track */}
+      {/* Smooth Linear Battery Track */}
       <div className="w-full h-2 bg-zinc-950 rounded-full overflow-hidden border border-zinc-800">
         <div
-          className={`h-full ${barColor} transition-all duration-75 ease-out`}
+          className={`h-full ${barColor} transition-[width] duration-1000 ease-linear`}
           style={{ width: `${percent}%` }}
         />
       </div>
