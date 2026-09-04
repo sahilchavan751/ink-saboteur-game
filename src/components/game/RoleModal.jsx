@@ -14,8 +14,8 @@ export const RoleModal = () => {
   const hint = roomState.hint;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-2xl p-6 shadow-elevated space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-zinc-950/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+      <div className="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-2xl p-5 sm:p-6 shadow-elevated space-y-5 sm:space-y-6 max-h-[92vh] overflow-y-auto my-auto">
         {/* Top Floating Badge */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800 text-xs">
           <div className="flex items-center gap-2 font-mono text-zinc-400">

@@ -50,10 +50,10 @@ export const SettingsModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-elevated space-y-5">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-zinc-950/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-elevated flex flex-col max-h-[92vh] sm:max-h-[85vh] my-auto overflow-hidden">
+        {/* Modal Header (Fixed at top) */}
+        <div className="shrink-0 px-5 sm:px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-zinc-400" />
             <h2 className="text-sm font-semibold text-zinc-100">Match Customization</h2>
@@ -66,8 +66,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Sliders Container */}
-        <div className="space-y-4">
+        {/* Scrollable Settings Form */}
+        <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4">
           {/* 1. Turn Duration per player */}
           <div className="space-y-1">
             <div className="flex items-center justify-between text-xs">
@@ -259,8 +259,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="pt-3 border-t border-zinc-800 flex items-center justify-between">
+        {/* Footer Actions (Pinned at bottom) */}
+        <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-zinc-800 flex items-center justify-between bg-zinc-900/95 backdrop-blur">
           <button
             onClick={resetDefaults}
             className="text-xs text-zinc-500 hover:text-zinc-300 cursor-pointer"
