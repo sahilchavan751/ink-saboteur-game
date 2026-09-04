@@ -33,6 +33,7 @@ export const SocketProvider = ({ children }) => {
   const [timer, setTimer] = useState({ timeRemaining: 0, phase: 'LOBBY' });
   const [strokes, setStrokes] = useState([]);
   const [remoteCursors, setRemoteCursors] = useState({});
+  const [chatMessages, setChatMessages] = useState([]);
   const [error, setError] = useState(null);
   const [firebaseRuleAlert, setFirebaseRuleAlert] = useState(false);
   const [loadingRoom, setLoadingRoom] = useState(false);
@@ -605,11 +606,26 @@ export const SocketProvider = ({ children }) => {
       }
     });
 
+    // Realtime live chat listener
+    const chatRef = ref(db, `rooms/${roomCode}/chat`);
+    const unsubscribeChat = onValue(chatRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        const list = Object.values(val)
+          .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
+          .slice(-100);
+        setChatMessages(list);
+      } else {
+        setChatMessages([]);
+      }
+    });
+
     return () => {
       unsubscribeRoom();
       unsubscribeStrokesReset();
       unsubscribeStrokesAdded();
       unsubscribeCursors();
+      unsubscribeChat();
       if (tickerRef.current) clearInterval(tickerRef.current);
     };
   }, [roomCode, myPlayerId, runPhaseTimer]);
@@ -964,8 +980,30 @@ export const SocketProvider = ({ children }) => {
     setRoomState(null);
     setStrokes([]);
     setRemoteCursors({});
+    setChatMessages([]);
     if (tickerRef.current) clearInterval(tickerRef.current);
   }, [roomCode, myPlayerId]);
+
+  const sendChatMessage = useCallback(async (text) => {
+    if (!roomCode || !text || !text.trim()) return;
+    const cleanText = text.trim().slice(0, 200);
+    try {
+      const currentPlayer = roomState?.players?.find((p) => p.id === myPlayerId);
+      const chatRef = ref(db, `rooms/${roomCode}/chat`);
+      const newMsgRef = push(chatRef);
+      await set(newMsgRef, {
+        id: newMsgRef.key,
+        senderId: myPlayerId,
+        senderName: currentPlayer?.name || 'Player',
+        senderColor: currentPlayer?.color || '#3b82f6',
+        senderAvatar: currentPlayer?.avatar || '👤',
+        text: cleanText,
+        timestamp: Date.now()
+      });
+    } catch (err) {
+      console.error('Failed to send chat message:', err);
+    }
+  }, [roomCode, myPlayerId, roomState]);
 
   return (
     <GameContext.Provider
@@ -976,6 +1014,8 @@ export const SocketProvider = ({ children }) => {
         timer,
         strokes,
         remoteCursors,
+        chatMessages,
+        sendChatMessage,
         error,
         setError,
         loadingRoom,

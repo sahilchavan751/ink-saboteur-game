@@ -6,11 +6,13 @@ import { playStrokeSound } from '../../utils/sound';
 
 export const CanvasBoard = ({
   playerColor = '#18181b',
+  brushColor,
   inkRemaining,
   setInkRemaining,
   isInteractive = true,
   brushSize = 5
 }) => {
+  const activeColor = brushColor || playerColor || '#18181b';
   const { strokes, drawStroke, sendCursor, remoteCursors, notifyInkDepleted, socket, roomState, wipeCanvas } = useGameSocket();
   const { speakingPeers, proximityMessages, localCursor, setLocalCursor } = useProximity();
 
@@ -314,7 +316,7 @@ export const CanvasBoard = ({
       startY: lastPos.y,
       endX: currentPos.x,
       endY: currentPos.y,
-      color: playerColor,
+      color: activeColor,
       width: brushSize
     };
 

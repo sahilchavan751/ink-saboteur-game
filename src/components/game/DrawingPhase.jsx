@@ -1,10 +1,43 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Eye, EyeOff, RotateCcw, ArrowRight, PenTool, Check, ChevronDown, Radio, Mic, MicOff, MessageSquare, Send, CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  RotateCcw,
+  ArrowRight,
+  PenTool,
+  Check,
+  ChevronDown,
+  Radio,
+  Mic,
+  MicOff,
+  MessageSquare,
+  Send,
+  CheckCircle2,
+  Clock,
+  Sparkles,
+  Palette
+} from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { useProximity } from '../../context/ProximityContext';
 import { CanvasBoard } from './CanvasBoard';
 import { InkBatteryBar } from '../common/InkBatteryBar';
+import { LiveChatPanel } from './LiveChatPanel';
 import { playClick } from '../../utils/sound';
+
+const BRUSH_COLORS = [
+  { hex: '#18181b', name: 'Ink Black' },
+  { hex: '#ffffff', name: 'White' },
+  { hex: '#ef4444', name: 'Crimson Red' },
+  { hex: '#f97316', name: 'Orange' },
+  { hex: '#eab308', name: 'Amber Yellow' },
+  { hex: '#10b981', name: 'Emerald Green' },
+  { hex: '#06b6d4', name: 'Cyan' },
+  { hex: '#3b82f6', name: 'Royal Blue' },
+  { hex: '#8b5cf6', name: 'Violet Purple' },
+  { hex: '#ec4899', name: 'Hot Pink' },
+  { hex: '#78350f', name: 'Brown' },
+  { hex: '#64748b', name: 'Slate Gray' }
+];
 
 export const DrawingPhase = () => {
   const { roomState, socket, passTurn, timer } = useGameSocket();
@@ -13,10 +46,14 @@ export const DrawingPhase = () => {
   const [concealed, setConcealed] = useState(false);
   const [brushSize, setBrushSize] = useState(6);
   const [brushMenuOpen, setBrushMenuOpen] = useState(false);
+  const [brushColor, setBrushColor] = useState(null);
+  const [colorMenuOpen, setColorMenuOpen] = useState(false);
   const [whisperOpen, setWhisperOpen] = useState(false);
   const [whisperText, setWhisperText] = useState('');
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
 
   const brushRef = useRef(null);
+  const colorRef = useRef(null);
   const whisperRef = useRef(null);
 
   // Close menus on outside click
@@ -24,6 +61,9 @@ export const DrawingPhase = () => {
     const handleClickOutside = (e) => {
       if (brushRef.current && !brushRef.current.contains(e.target)) {
         setBrushMenuOpen(false);
+      }
+      if (colorRef.current && !colorRef.current.contains(e.target)) {
+        setColorMenuOpen(false);
       }
       if (whisperRef.current && !whisperRef.current.contains(e.target)) {
         setWhisperOpen(false);
@@ -37,6 +77,7 @@ export const DrawingPhase = () => {
 
   const currentPlayer = roomState.players.find((p) => p.id === socket?.id);
   const myColor = currentPlayer?.color || '#18181b';
+  const activeBrushColor = brushColor || myColor;
   const myRole = roomState.myRole;
 
   // Turn management
@@ -58,19 +99,19 @@ export const DrawingPhase = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-col flex-1 h-full min-h-0 space-y-2.5">
-      {/* Top Unified HUD Toolbar - Perfectly Centered & Aligned */}
-      <div className="shrink-0 w-full bg-zinc-900 border border-zinc-800 p-2.5 sm:p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 shadow-sm">
-        {/* Left: Secret Prompt & Category */}
-        <div className="flex items-center gap-2 flex-wrap">
+      {/* Top Unified HUD Toolbar - Perfectly Centered & Aligned, Never Prematurely Wraps */}
+      <div className="shrink-0 w-full bg-zinc-900 border border-zinc-800 p-2 sm:px-3 sm:py-2.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shadow-sm">
+        {/* Left: Secret Prompt, Role, Theme, Tie-Breaker */}
+        <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-x-auto no-scrollbar">
           {/* Secret Prompt Pill */}
-          <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs shrink-0">
             <span className="font-mono text-zinc-500 uppercase text-[10px] sm:text-[11px]">Prompt:</span>
             {concealed ? (
-              <span className="font-mono text-zinc-600 font-medium select-none tracking-widest">
+              <span className="font-mono text-zinc-600 font-medium select-none tracking-widest text-[11px]">
                 ••••••••••
               </span>
             ) : (
-              <span className="font-semibold text-zinc-100 max-w-[140px] sm:max-w-[200px] truncate">
+              <span className="font-semibold text-zinc-100 max-w-[110px] sm:max-w-[170px] truncate text-xs">
                 "{myRole?.prompt || 'Loading...'}"
               </span>
             )}
@@ -88,13 +129,13 @@ export const DrawingPhase = () => {
           </div>
 
           {/* Role Indicator Pill (Citizen / Saboteur) */}
-          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs font-mono">
+          <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs font-mono shrink-0">
             <span className="text-zinc-500 uppercase text-[10px] sm:text-[11px]">Role:</span>
             {concealed ? (
-              <span className="text-zinc-600 font-medium select-none tracking-widest">•••••</span>
+              <span className="text-zinc-600 font-medium select-none tracking-widest text-[10px] sm:text-[11px]">•••••</span>
             ) : (
               <span
-                className={`font-semibold px-2 py-0.5 rounded text-[11px] sm:text-xs ${
+                className={`font-semibold px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] ${
                   myRole?.isSaboteur
                     ? 'bg-rose-950/70 border border-rose-800 text-rose-300'
                     : 'bg-indigo-950/70 border border-indigo-800 text-indigo-300'
@@ -106,41 +147,42 @@ export const DrawingPhase = () => {
           </div>
 
           {/* Category Pill */}
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-400">
-            <span className="text-[11px] text-zinc-500 font-mono uppercase">Theme:</span>
-            <span className="text-zinc-200 font-medium">{roomState.category}</span>
+          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 shrink-0">
+            <span className="text-[10px] sm:text-[11px] text-zinc-500 font-mono uppercase">Theme:</span>
+            <span className="text-zinc-200 font-medium max-w-[110px] truncate">{roomState.category}</span>
           </div>
 
+          {/* Sleek Tie-Breaker Draw Badge */}
           {roomState.isTieBreaker && (
-            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-950/40 border border-amber-800 text-amber-300 text-xs font-mono font-medium animate-pulse">
-              <span>Tie-Breaker Draw</span>
+            <div className="flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/60 text-amber-300 text-[10px] sm:text-[11px] font-mono font-semibold shrink-0 animate-pulse">
+              <span>⚡ Tie-Breaker</span>
             </div>
           )}
         </div>
 
-        {/* Right: Controls (Turn Status, Battery, Brush dropdown, Voice, Done) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        {/* Right: Controls (Turn Status, Battery, Brush dropdown, Color dropdown, Voice, Done, Mobile Chat) */}
+        <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-x-auto no-scrollbar pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-800/60">
           {/* Pass / Chance Indicator */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 font-mono">
+          <div className="hidden lg:flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 font-mono shrink-0">
             <RotateCcw className="w-3 h-3 text-zinc-400" />
-            <span className="text-[11px]">Chance {roomState.currentChance || 1}/{roomState.drawChances || 2}</span>
+            <span className="text-[10px] sm:text-[11px]">Chance {roomState.currentChance || 1}/{roomState.drawChances || 2}</span>
           </div>
 
           {/* Normal Turn Indicator Pill (NO EMOJIS) */}
           <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs border transition ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl text-xs border transition shrink-0 ${
               isMyTurn
                 ? 'bg-emerald-950/50 border-emerald-500/80 text-emerald-300 font-semibold shadow-sm'
                 : 'bg-zinc-950 border-zinc-800 text-zinc-300'
             }`}
           >
             <span
-              className={`w-2 h-2 rounded-full ${
+              className={`w-2 h-2 rounded-full shrink-0 ${
                 isMyTurn ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'
               }`}
             />
-            <span className="whitespace-nowrap font-medium text-xs">
-              {isMyTurn ? 'Your Turn to Draw' : `${activePlayer?.name || 'Artist'}'s Turn`}
+            <span className="whitespace-nowrap font-medium text-[11px] sm:text-xs">
+              {isMyTurn ? 'Your Turn' : `${activePlayer?.name || 'Artist'}'s Turn`}
             </span>
           </div>
 
@@ -149,20 +191,20 @@ export const DrawingPhase = () => {
             <InkBatteryBar
               inkRemaining={turnRemainingMs}
               maxInk={turnDurationMs}
-              playerColor={activePlayer?.color || myColor}
+              playerColor={activeBrushColor}
               compact={true}
             />
           </div>
 
-          {/* Brush Dropdown Button in Top Toolbar */}
-          <div ref={brushRef} className="relative">
+          {/* Brush Thickness Dropdown Button in Top Toolbar */}
+          <div ref={brushRef} className="relative shrink-0">
             <button
               type="button"
               onClick={() => {
                 playClick();
                 setBrushMenuOpen(!brushMenuOpen);
               }}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
                 brushMenuOpen
                   ? 'bg-zinc-800 text-white border-zinc-600'
                   : 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:border-zinc-700 hover:text-white'
@@ -219,16 +261,66 @@ export const DrawingPhase = () => {
             )}
           </div>
 
+          {/* Brush Color Horizontal Dropdown in Top Toolbar */}
+          <div ref={colorRef} className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                playClick();
+                setColorMenuOpen(!colorMenuOpen);
+              }}
+              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
+                colorMenuOpen
+                  ? 'bg-zinc-800 text-white border-zinc-600'
+                  : 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:border-zinc-700 hover:text-white'
+              }`}
+              title="Select brush color"
+            >
+              <Palette className="w-3.5 h-3.5 text-zinc-300" />
+              <span
+                className="w-3 h-3 rounded-full inline-block shrink-0 border border-zinc-600 shadow-sm"
+                style={{ backgroundColor: activeBrushColor }}
+              />
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
+            </button>
+
+            {/* Horizontal Color Dropdown Palette */}
+            {colorMenuOpen && (
+              <div className="absolute top-full mt-1.5 right-0 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 z-50 bg-zinc-900 border border-zinc-700 rounded-2xl p-2 shadow-2xl animate-fadeIn">
+                <div className="flex items-center gap-1.5 flex-nowrap">
+                  {BRUSH_COLORS.map(({ hex, name }) => (
+                    <button
+                      key={hex}
+                      type="button"
+                      onClick={() => {
+                        playClick();
+                        setBrushColor(hex);
+                        setColorMenuOpen(false);
+                      }}
+                      style={{ backgroundColor: hex }}
+                      className={`w-6 h-6 rounded-full shrink-0 transition-transform hover:scale-125 cursor-pointer border ${
+                        activeBrushColor === hex
+                          ? 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-zinc-900 border-white scale-110'
+                          : 'border-zinc-700/60 hover:border-white'
+                      }`}
+                      title={name}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Proximity Short Voice UI in Top Toolbar */}
           {proximity && (
-            <div ref={whisperRef} className="relative flex items-center gap-1">
+            <div ref={whisperRef} className="relative flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={() => {
                   playClick();
                   proximity.toggleProximity();
                 }}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
                   proximity.isProximityEnabled
                     ? 'bg-emerald-950/60 border-emerald-600/80 text-emerald-300'
                     : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
@@ -254,7 +346,7 @@ export const DrawingPhase = () => {
                       playClick();
                       proximity.toggleMute();
                     }}
-                    className={`p-1.5 rounded-xl border text-xs transition cursor-pointer ${
+                    className={`p-1 sm:p-1.5 rounded-xl border text-xs transition cursor-pointer ${
                       proximity.isMuted
                         ? 'bg-rose-950/50 border-rose-800/80 text-rose-300'
                         : proximity.isSpeaking
@@ -274,7 +366,7 @@ export const DrawingPhase = () => {
                   <button
                     type="button"
                     onClick={() => setWhisperOpen(!whisperOpen)}
-                    className="p-1.5 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                    className="p-1 sm:p-1.5 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
                     title="Send cursor whisper speech bubble"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
@@ -316,13 +408,26 @@ export const DrawingPhase = () => {
                 playClick();
                 passTurn();
               }}
-              className="px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold shadow transition cursor-pointer flex items-center gap-1"
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold shadow transition cursor-pointer flex items-center gap-1 shrink-0"
               title="Finish drawing early"
             >
               <span>Done</span>
               <ArrowRight className="w-3 h-3" />
             </button>
           )}
+
+          {/* Mobile Live Chat Toggle Button */}
+          <button
+            type="button"
+            onClick={() => {
+              playClick();
+              setMobileChatOpen(true);
+            }}
+            className="lg:hidden p-1 sm:p-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition cursor-pointer shrink-0"
+            title="Open live chat"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
@@ -366,12 +471,13 @@ export const DrawingPhase = () => {
         })}
       </div>
 
-      {/* Main Drawing Area: Maximized Whiteboard & Desktop Queue Rail */}
+      {/* Main Drawing Area: Maximized Whiteboard & Desktop Queue + Live Chat Rails */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-3 items-stretch h-full">
         {/* Whiteboard Hero (3 cols on desktop, full width on mobile) */}
         <div className="lg:col-span-3 w-full h-full min-h-0 flex flex-col">
           <CanvasBoard
-            playerColor={myColor}
+            playerColor={activeBrushColor}
+            brushColor={activeBrushColor}
             inkRemaining={turnRemainingMs}
             setInkRemaining={() => {}}
             isInteractive={isMyTurn && (roomState.turnTimeRemaining ?? 10) > 0}
@@ -379,84 +485,92 @@ export const DrawingPhase = () => {
           />
         </div>
 
-        {/* Turn Order & Player Queue Rail (Hidden on mobile, 1 col on desktop) */}
-        <div className="hidden lg:flex flex-col bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-3 h-full min-h-0">
-          <div className="flex items-center justify-between pb-2 border-b border-zinc-800 shrink-0">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              Drawing Queue
-            </h3>
-            <span className="text-[11px] font-mono text-zinc-400 font-medium bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">
-              Pass {roomState.currentChance || 1} / {roomState.drawChances || 2}
-            </span>
+        {/* Desktop Right Rail: Stacked Drawing Queue & Live Chat */}
+        <div className="hidden lg:flex flex-col gap-3 h-full min-h-0">
+          {/* Top: Drawing Queue Panel with Inner Scroll */}
+          <div className="flex-1 max-h-[46%] min-h-[160px] flex flex-col bg-zinc-900 p-3 rounded-2xl border border-zinc-800 shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-800 shrink-0">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Drawing Queue
+              </h3>
+              <span className="text-[11px] font-mono text-zinc-400 font-medium bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">
+                Pass {roomState.currentChance || 1} / {roomState.drawChances || 2}
+              </span>
+            </div>
+
+            <div className="space-y-1.5 flex-1 overflow-y-auto pr-1 min-h-0 mt-2">
+              {(roomState.turnOrder || []).map((pid, idx) => {
+                const player = roomState.players.find((p) => p.id === pid);
+                if (!player) return null;
+
+                const turnOrderLen = (roomState.turnOrder || []).length || 1;
+                const activeIndexInLap = (roomState.currentTurnIndex ?? 0) % turnOrderLen;
+                const isCurrent = idx === activeIndexInLap;
+                const hasCompletedInLap = idx < activeIndexInLap;
+                const isMe = pid === socket?.id;
+
+                return (
+                  <div
+                    key={pid}
+                    className={`flex items-center justify-between p-2 rounded-xl border text-xs transition ${
+                      isCurrent
+                        ? 'bg-zinc-800 border-zinc-600 shadow-sm'
+                        : hasCompletedInLap
+                        ? 'bg-zinc-950/40 border-zinc-850 opacity-60'
+                        : 'bg-zinc-950/70 border-zinc-800/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] text-zinc-500 w-3 font-semibold">
+                        {idx + 1}
+                      </span>
+                      <div
+                        className="w-6 h-6 rounded-lg flex items-center justify-center text-xs bg-zinc-900 border"
+                        style={{ borderColor: player.color }}
+                      >
+                        {player.avatar}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1 font-medium text-zinc-200">
+                          <span className="truncate max-w-[80px] text-[11px]">{player.name}</span>
+                          {isMe && <span className="text-[9px] text-zinc-500 font-mono">(You)</span>}
+                        </div>
+                        <div className="flex items-center gap-1 text-[9px] text-zinc-500 font-mono">
+                          <span
+                            className="w-1.5 h-1.5 rounded-full inline-block"
+                            style={{ backgroundColor: player.color }}
+                          />
+                          <span>{player.score} pts</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      {isCurrent ? (
+                        <span className="text-[9px] font-mono text-emerald-400 font-semibold px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Drawing
+                        </span>
+                      ) : hasCompletedInLap ? (
+                        <span className="text-[9px] font-mono text-zinc-500 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-zinc-500" />
+                          Done
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-mono text-zinc-500">
+                          Waiting
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
-            {(roomState.turnOrder || []).map((pid, idx) => {
-              const player = roomState.players.find((p) => p.id === pid);
-              if (!player) return null;
-
-              const turnOrderLen = (roomState.turnOrder || []).length || 1;
-              const activeIndexInLap = (roomState.currentTurnIndex ?? 0) % turnOrderLen;
-              const isCurrent = idx === activeIndexInLap;
-              const hasCompletedInLap = idx < activeIndexInLap;
-              const isMe = pid === socket?.id;
-
-              return (
-                <div
-                  key={pid}
-                  className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition ${
-                    isCurrent
-                      ? 'bg-zinc-800 border-zinc-600 shadow-sm'
-                      : hasCompletedInLap
-                      ? 'bg-zinc-950/40 border-zinc-850 opacity-60'
-                      : 'bg-zinc-950/70 border-zinc-800/80'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="font-mono text-[10px] text-zinc-500 w-3 font-semibold">
-                      {idx + 1}
-                    </span>
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-sm bg-zinc-900 border"
-                      style={{ borderColor: player.color }}
-                    >
-                      {player.avatar}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 font-medium text-zinc-200">
-                        <span className="truncate max-w-[85px]">{player.name}</span>
-                        {isMe && <span className="text-[10px] text-zinc-500 font-mono">(You)</span>}
-                      </div>
-                      <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
-                        <span
-                          className="w-1.5 h-1.5 rounded-full inline-block"
-                          style={{ backgroundColor: player.color }}
-                        />
-                        <span>{player.score} pts</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    {isCurrent ? (
-                      <span className="text-[10px] font-mono text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-800 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        Drawing
-                      </span>
-                    ) : hasCompletedInLap ? (
-                      <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-zinc-500" />
-                        Done
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-mono text-zinc-500">
-                        Waiting
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          {/* Bottom: Live Chat Panel with Inner Scroll */}
+          <div className="flex-1 min-h-[220px] flex flex-col min-h-0">
+            <LiveChatPanel />
           </div>
         </div>
       </div>
@@ -530,6 +644,15 @@ export const DrawingPhase = () => {
                 })}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Live Chat Drawer Modal */}
+      {mobileChatOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-2 sm:p-4 animate-fadeIn">
+          <div className="w-full max-w-md h-[70vh] max-h-[500px]">
+            <LiveChatPanel isMobileDrawer={true} onCloseMobile={() => setMobileChatOpen(false)} />
           </div>
         </div>
       )}
