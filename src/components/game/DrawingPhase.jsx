@@ -100,9 +100,9 @@ export const DrawingPhase = () => {
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-col flex-1 h-full min-h-0 space-y-2.5">
       {/* Top Unified HUD Toolbar - Perfectly Centered & Aligned, Never Prematurely Wraps */}
-      <div className="shrink-0 w-full bg-zinc-900 border border-zinc-800 p-2 sm:px-3 sm:py-2.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shadow-sm">
+      <div className="shrink-0 w-full bg-zinc-900 border border-zinc-800 p-2 sm:px-3 sm:py-2.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shadow-sm relative z-40">
         {/* Left: Secret Prompt, Role, Theme, Tie-Breaker */}
-        <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-x-auto no-scrollbar">
+        <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap shrink-0">
           {/* Secret Prompt Pill */}
           <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs shrink-0">
             <span className="font-mono text-zinc-500 uppercase text-[10px] sm:text-[11px]">Prompt:</span>
@@ -161,7 +161,7 @@ export const DrawingPhase = () => {
         </div>
 
         {/* Right: Controls (Turn Status, Battery, Brush dropdown, Color dropdown, Voice, Done, Mobile Chat) */}
-        <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-x-auto no-scrollbar pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-800/60">
+        <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-800/60 relative">
           {/* Pass / Chance Indicator */}
           <div className="hidden lg:flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 font-mono shrink-0">
             <RotateCcw className="w-3 h-3 text-zinc-400" />
@@ -224,7 +224,7 @@ export const DrawingPhase = () => {
 
             {/* Brush Popover Dropdown */}
             {brushMenuOpen && (
-              <div className="absolute top-full mt-1.5 right-0 z-50 w-36 bg-zinc-900 border border-zinc-700 rounded-xl p-1.5 shadow-elevated animate-fadeIn space-y-1">
+              <div className="absolute top-full mt-2 right-0 z-50 w-36 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 rounded-xl p-1.5 shadow-2xl animate-fadeIn space-y-1">
                 {[
                   { size: 3, label: 'Fine (3px)' },
                   { size: 6, label: 'Medium (6px)' },
@@ -278,7 +278,7 @@ export const DrawingPhase = () => {
             >
               <Palette className="w-3.5 h-3.5 text-zinc-300" />
               <span
-                className="w-3 h-3 rounded-full inline-block shrink-0 border border-zinc-600 shadow-sm"
+                className="w-3.5 h-3.5 rounded-full inline-block shrink-0 border border-white/50 shadow-sm"
                 style={{ backgroundColor: activeBrushColor }}
               />
               <ChevronDown className="w-3 h-3 text-zinc-500" />
@@ -286,8 +286,15 @@ export const DrawingPhase = () => {
 
             {/* Horizontal Color Dropdown Palette */}
             {colorMenuOpen && (
-              <div className="absolute top-full mt-1.5 right-0 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 z-50 bg-zinc-900 border border-zinc-700 rounded-2xl p-2 shadow-2xl animate-fadeIn">
-                <div className="flex items-center gap-1.5 flex-nowrap">
+              <div className="absolute top-full mt-2 right-0 z-50 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 rounded-2xl p-2.5 shadow-2xl animate-fadeIn">
+                <div className="text-[10px] font-mono uppercase text-zinc-400 font-semibold mb-1.5 px-0.5 flex items-center justify-between">
+                  <span>Ink Palette</span>
+                  <span
+                    className="w-2.5 h-2.5 rounded-full inline-block border border-white/60"
+                    style={{ backgroundColor: activeBrushColor }}
+                  />
+                </div>
+                <div className="grid grid-cols-6 sm:flex sm:flex-nowrap items-center gap-1.5">
                   {BRUSH_COLORS.map(({ hex, name }) => (
                     <button
                       key={hex}
@@ -300,7 +307,7 @@ export const DrawingPhase = () => {
                       style={{ backgroundColor: hex }}
                       className={`w-6 h-6 rounded-full shrink-0 transition-transform hover:scale-125 cursor-pointer border ${
                         activeBrushColor === hex
-                          ? 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-zinc-900 border-white scale-110'
+                          ? 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-zinc-900 border-white scale-110 shadow-md'
                           : 'border-zinc-700/60 hover:border-white'
                       }`}
                       title={name}
