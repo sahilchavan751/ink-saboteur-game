@@ -1,5 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useGameSocket } from '../../context/SocketContext';
 import { useProximity } from '../../context/ProximityContext';
 import { playStrokeSound } from '../../utils/sound';
@@ -12,7 +11,7 @@ export const CanvasBoard = ({
   brushSize = 5
 }) => {
   const { strokes, drawStroke, sendCursor, remoteCursors, notifyInkDepleted, socket, roomState } = useGameSocket();
-  const { isProximityEnabled, speakingPeers, proximityMessages, localCursor, setLocalCursor } = useProximity();
+  const { speakingPeers, proximityMessages, localCursor, setLocalCursor } = useProximity();
 
   // Whiteboard pattern set authoritatively by room settings: 'dotted' | 'grid' | 'clean'
   const pattern = roomState?.whiteboardPattern || 'dotted';
@@ -23,19 +22,36 @@ export const CanvasBoard = ({
   const lastPosRef = useRef(null);
   const lastDrawTimeRef = useRef(null);
   const soundThrottleRef = useRef(0);
+  const lastCursorSendRef = useRef(0);
+  const drawnStrokesCountRef = useRef(0);
+  const lastDimensionsRef = useRef({ width: 0, height: 0 });
 
-  // Render Whiteboard: Pure White with optional Dotted / Grid / Clean background
-  const redrawCanvas = useCallback(() => {
+  // Helper to draw a single stroke segment onto 2D context
+  const drawStrokeSegment = (ctx, stroke, width, height) => {
+    ctx.beginPath();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = stroke.color;
+    ctx.lineWidth = (stroke.width || 5) * (width / 800);
+    ctx.moveTo(stroke.startX * width, stroke.startY * height);
+    ctx.lineTo(stroke.endX * width, stroke.endY * height);
+    ctx.stroke();
+  };
+
+  // Full redraw: only executed on resize, pattern change, or stroke clears
+  const fullRedraw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    if (rect.width === 0 || rect.height === 0) return;
 
+    const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
+    lastDimensionsRef.current = { width: rect.width, height: rect.height };
 
     ctx.scale(dpr, dpr);
 
@@ -43,7 +59,7 @@ export const CanvasBoard = ({
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, rect.width, rect.height);
 
-    // 2. Render Selected Pattern
+    // 2. Render Pattern
     if (pattern === 'dotted') {
       ctx.fillStyle = '#d4d4d8';
       const spacing = 24;
@@ -71,28 +87,56 @@ export const CanvasBoard = ({
         ctx.stroke();
       }
     }
-    // 'clean' leaves the canvas purely white with no patterns
+    // 'clean' leaves purely white canvas
 
     // 3. Render all strokes crisply
     strokes.forEach((stroke) => {
-      ctx.beginPath();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = (stroke.width || 5) * (rect.width / 800);
-
-      ctx.moveTo(stroke.startX * rect.width, stroke.startY * rect.height);
-      ctx.lineTo(stroke.endX * rect.width, stroke.endY * rect.height);
-      ctx.stroke();
+      drawStrokeSegment(ctx, stroke, rect.width, rect.height);
     });
+    drawnStrokesCountRef.current = strokes.length;
   }, [strokes, pattern]);
 
+  // Handle window and element resize
   useEffect(() => {
-    redrawCanvas();
-    const handleResize = () => redrawCanvas();
+    fullRedraw();
+    const handleResize = () => fullRedraw();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [redrawCanvas]);
+  }, [fullRedraw]);
+
+  // Real-time incremental stroke rendering: draw new strokes without wiping canvas buffer
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    // If canvas size changed or strokes were cleared/reset, perform full redraw
+    if (
+      strokes.length === 0 ||
+      strokes.length < drawnStrokesCountRef.current ||
+      rect.width !== lastDimensionsRef.current.width ||
+      rect.height !== lastDimensionsRef.current.height
+    ) {
+      fullRedraw();
+      return;
+    }
+
+    // Incremental draw: only render incoming new strokes!
+    const start = drawnStrokesCountRef.current;
+    if (start < strokes.length) {
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (let i = start; i < strokes.length; i++) {
+        drawStrokeSegment(ctx, strokes[i], rect.width, rect.height);
+      }
+      ctx.restore();
+      drawnStrokesCountRef.current = strokes.length;
+    }
+  }, [strokes, fullRedraw]);
 
   const getNormalizedPos = (e) => {
     const canvas = canvasRef.current;
@@ -117,6 +161,13 @@ export const CanvasBoard = ({
         e.target.setPointerCapture(e.pointerId);
       } catch (err) {}
     }
+
+    sendCursor({
+      x: lastPosRef.current.x,
+      y: lastPosRef.current.y,
+      isDrawing: true
+    });
+    lastCursorSendRef.current = Date.now();
   };
 
   const handlePointerMove = (e) => {
@@ -125,17 +176,22 @@ export const CanvasBoard = ({
       setLocalCursor(currentPos);
     }
 
-    sendCursor({
-      x: currentPos.x,
-      y: currentPos.y,
-      isDrawing: isDrawingRef.current && inkRemaining > 0
-    });
+    const now = Date.now();
+
+    // Throttle cursor position broadcast to 40ms (~25 updates/sec) to avoid socket queue clogging
+    if (now - lastCursorSendRef.current > 40) {
+      sendCursor({
+        x: currentPos.x,
+        y: currentPos.y,
+        isDrawing: isDrawingRef.current && inkRemaining > 0
+      });
+      lastCursorSendRef.current = now;
+    }
 
     if (!isDrawingRef.current || !isInteractive || inkRemaining <= 0) {
       return;
     }
 
-    const now = Date.now();
     const deltaTime = now - (lastDrawTimeRef.current || now);
     lastDrawTimeRef.current = now;
 
@@ -164,6 +220,20 @@ export const CanvasBoard = ({
       width: brushSize
     };
 
+    // Immediate local drawing for instant zero-lag feedback
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        ctx.save();
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawStrokeSegment(ctx, strokeData, rect.width, rect.height);
+        ctx.restore();
+      }
+    }
+
     drawStroke(strokeData);
     lastPosRef.current = currentPos;
   };
@@ -177,14 +247,15 @@ export const CanvasBoard = ({
       ...getNormalizedPos(e),
       isDrawing: false
     });
+    lastCursorSendRef.current = Date.now();
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
-      {/* The Whiteboard Frame - Maximized and responsive */}
+    <div className="w-full h-full flex flex-col flex-1 min-h-0">
+      {/* The Whiteboard Frame - Stretches to bottom */}
       <div
         ref={containerRef}
-        className="relative w-full flex-1 aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto min-h-[460px] sm:min-h-[520px] lg:min-h-[620px] max-h-[780px] bg-white rounded-2xl border border-zinc-300 shadow-sm overflow-hidden canvas-wrapper touch-none"
+        className="relative w-full h-full flex-1 min-h-[360px] bg-white rounded-2xl border border-zinc-300 shadow-sm overflow-hidden canvas-wrapper touch-none"
       >
         <canvas
           ref={canvasRef}
@@ -200,19 +271,6 @@ export const CanvasBoard = ({
               : 'cursor-default'
           }`}
         />
-
-        {/* Proximity Hearing Range Circle (Around local cursor) */}
-        {isProximityEnabled && (
-          <div
-            className="absolute pointer-events-none rounded-full border border-emerald-500/20 bg-emerald-500/5 transition-all duration-75 ease-out -translate-x-1/2 -translate-y-1/2 z-10"
-            style={{
-              left: `${(localCursor?.x ?? 0.5) * 100}%`,
-              top: `${(localCursor?.y ?? 0.5) * 100}%`,
-              width: '45%',
-              aspectRatio: '1 / 1'
-            }}
-          />
-        )}
 
         {/* Remote Opponent Live Cursors with High-Contrast Dark Badges & Proximity Indicators */}
         {Object.entries(remoteCursors).map(([id, cursor]) => {

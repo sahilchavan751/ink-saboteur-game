@@ -18,7 +18,7 @@ export const GameView = () => {
   const phase = roomState.phase;
 
   return (
-    <div className="w-full relative min-h-[calc(100vh-3.5rem)] pb-4">
+    <div className="w-full flex-1 flex flex-col relative h-[calc(100vh-3.5rem)] min-h-0 pb-2.5 overflow-hidden">
       {/* 1. ROLE REVEAL Phase */}
       {phase === 'ROLE_REVEAL' && (
         <>

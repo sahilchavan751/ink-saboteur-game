@@ -15,7 +15,7 @@ const MainContent = () => {
       <Header />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full relative z-10">
+      <main className="flex-1 w-full relative z-10 flex flex-col min-h-0">
         {!roomState ? (
           <LobbyView />
         ) : roomState.phase === 'LOBBY' ? (

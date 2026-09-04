@@ -57,9 +57,9 @@ export const DrawingPhase = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2.5 space-y-3">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-col flex-1 h-full min-h-0 space-y-2.5">
       {/* Top Unified HUD Toolbar - Perfectly Centered & Aligned */}
-      <div className="w-full bg-zinc-900 border border-zinc-800 p-2.5 sm:p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 shadow-sm">
+      <div className="shrink-0 w-full bg-zinc-900 border border-zinc-800 p-2.5 sm:p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 shadow-sm">
         {/* Left: Secret Prompt & Category */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Secret Prompt Pill */}
@@ -309,7 +309,7 @@ export const DrawingPhase = () => {
       </div>
 
       {/* Mobile Queue Horizontal Strip (Visible on mobile screens) */}
-      <div className="lg:hidden bg-zinc-900 border border-zinc-800 px-3 py-2 rounded-xl flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <div className="shrink-0 lg:hidden bg-zinc-900 border border-zinc-800 px-3 py-2 rounded-xl flex items-center gap-2 overflow-x-auto no-scrollbar">
         <span className="text-[10px] font-mono uppercase text-zinc-500 shrink-0">Queue:</span>
         {(roomState.turnOrder || []).map((pid, idx) => {
           const player = roomState.players.find((p) => p.id === pid);
@@ -349,9 +349,9 @@ export const DrawingPhase = () => {
       </div>
 
       {/* Main Drawing Area: Maximized Whiteboard & Desktop Queue Rail */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 items-stretch">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-3 items-stretch h-full">
         {/* Whiteboard Hero (3 cols on desktop, full width on mobile) */}
-        <div className="lg:col-span-3 w-full h-full">
+        <div className="lg:col-span-3 w-full h-full min-h-0 flex flex-col">
           <CanvasBoard
             playerColor={myColor}
             inkRemaining={turnRemainingMs}
@@ -362,8 +362,8 @@ export const DrawingPhase = () => {
         </div>
 
         {/* Turn Order & Player Queue Rail (Hidden on mobile, 1 col on desktop) */}
-        <div className="hidden lg:flex flex-col bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+        <div className="hidden lg:flex flex-col bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-3 h-full min-h-0">
+          <div className="flex items-center justify-between pb-2 border-b border-zinc-800 shrink-0">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
               Drawing Queue
             </h3>
@@ -372,7 +372,7 @@ export const DrawingPhase = () => {
             </span>
           </div>
 
-          <div className="space-y-2 flex-1 overflow-y-auto pr-1 max-h-[640px]">
+          <div className="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
             {(roomState.turnOrder || []).map((pid, idx) => {
               const player = roomState.players.find((p) => p.id === pid);
               if (!player) return null;
