@@ -308,13 +308,17 @@ export const SocketProvider = ({ children }) => {
           });
         }
 
+        // REQUIREMENT: If the vote tied, CONTINUE THE GAME with strokes wiped for a fresh tie-breaker round
+        // Wipe canvas strokes in Firebase on tie, keeping prompts, category, hint, and roles intact
+        await remove(ref(db, `rooms/${activeRoomCode}/strokes`));
+
         await update(roomRef, {
           phase: 'DRAWING',
           turnOrder,
           currentTurnIndex: 0,
           activePlayerId: firstPlayerId,
           turnTimeRemaining: turnDur,
-          // DO NOT delete strokes - keep the shared whiteboard drawing!
+          strokes: null,
           votes: null,
           roundResults: null,
           isTieBreaker: true,
@@ -462,6 +466,7 @@ export const SocketProvider = ({ children }) => {
           roundScore: p.roundScore || 0,
           isReady: p.isReady || false,
           hasVoted: p.hasVoted || false,
+          voteTargetId: p.voteTargetId || null,
           isSaboteur: isRevealMode ? p.isSaboteur : (isSelf ? p.isSaboteur : null),
           prompt: isRevealMode ? p.prompt : (isSelf ? p.prompt : null)
         };
@@ -833,6 +838,13 @@ export const SocketProvider = ({ children }) => {
     return { success: true, isMatch };
   }, [roomCode, myPlayerId]);
 
+  const wipeCanvas = useCallback(async () => {
+    if (!roomCode || !isHostRef.current) return;
+    await remove(ref(db, `rooms/${roomCode}/strokes`));
+    setStrokes([]);
+    return { success: true };
+  }, [roomCode]);
+
   const nextRound = useCallback(async () => {
     if (!roomCode || !isHostRef.current) return;
     const snap = await get(ref(db, `rooms/${roomCode}`));
@@ -942,7 +954,8 @@ export const SocketProvider = ({ children }) => {
         submitSaboteurGuess,
         nextRound,
         playAgain,
-        leaveRoom
+        leaveRoom,
+        wipeCanvas
       }}
     >
       {children}

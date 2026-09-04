@@ -7,25 +7,29 @@ import { playVote } from '../../utils/sound';
 export const VotingPhase = () => {
   const { roomState, timer, socket, submitVote } = useGameSocket();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedTargetId, setSelectedTargetId] = useState(null);
 
   if (!roomState) return null;
 
   const myPlayerId = socket?.id;
   const currentPlayer = roomState.players.find((p) => p.id === myPlayerId);
-  const myVotedTargetId = currentPlayer?.voteTargetId;
-  const hasAlreadyVoted = Boolean(currentPlayer?.hasVoted && myVotedTargetId);
+  const myVotedTargetId = selectedTargetId || currentPlayer?.voteTargetId;
+  const hasAlreadyVoted = Boolean(currentPlayer?.hasVoted || selectedTargetId);
   const allPlayers = roomState.players || [];
   const myVotedPlayer = allPlayers.find((p) => p.id === myVotedTargetId);
   const totalVotesCast = allPlayers.filter((p) => p.hasVoted).length;
+  const isSaboteur = roomState.myRole?.isSaboteur || currentPlayer?.isSaboteur;
 
   const handleVote = async (targetPlayerId) => {
     if (isSubmitting) return;
+    setSelectedTargetId(targetPlayerId);
     setIsSubmitting(true);
     playVote();
 
     try {
       await submitVote(targetPlayerId);
     } catch (err) {
+      setSelectedTargetId(currentPlayer?.voteTargetId || null);
       alert(err.message || 'Failed to submit vote');
     } finally {
       setIsSubmitting(false);
@@ -41,7 +45,7 @@ export const VotingPhase = () => {
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-zinc-100 flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-bold text-zinc-100 flex items-center gap-2 flex-wrap">
               <span>Accusation Phase</span>
               {roomState.isTieBreaker && (
                 <span className="text-xs px-2 py-0.5 rounded bg-amber-950/60 border border-amber-800/60 text-amber-300 font-mono font-medium">
@@ -54,16 +58,33 @@ export const VotingPhase = () => {
             </h2>
             <p className="text-xs text-zinc-400">
               {roomState.isTieBreaker
-                ? 'Previous vote tied! Re-inspect all strokes on the whiteboard and cast your vote to break the tie.'
-                : 'Inspect the finished whiteboard drawing. Who drew strokes inconsistent with the theme?'}
+                ? 'Previous vote tied! Strokes have been wiped for a fresh inspection. Cast your vote to break the tie.'
+                : 'Inspect the whiteboard drawing. Who drew strokes inconsistent with the theme?'}
             </p>
           </div>
         </div>
 
-        {/* Voting Countdown Timer */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 font-mono text-zinc-300 text-sm">
-          <Clock className="w-4 h-4 text-zinc-500" />
-          <span className="font-semibold">{Math.max(0, timer.timeRemaining)}s</span>
+        {/* Right Info: Role Badge & Voting Countdown Timer */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Your Role Indicator */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs font-mono">
+            <span className="text-zinc-500 uppercase text-[10px]">Your Role:</span>
+            <span
+              className={`font-semibold px-2 py-0.5 rounded text-xs ${
+                isSaboteur
+                  ? 'bg-rose-950/70 border border-rose-800 text-rose-300'
+                  : 'bg-indigo-950/70 border border-indigo-800 text-indigo-300'
+              }`}
+            >
+              {isSaboteur ? 'Saboteur' : 'Citizen'}
+            </span>
+          </div>
+
+          {/* Voting Countdown Timer */}
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 font-mono text-zinc-300 text-sm">
+            <Clock className="w-4 h-4 text-zinc-500" />
+            <span className="font-semibold">{Math.max(0, timer.timeRemaining)}s</span>
+          </div>
         </div>
       </div>
 
@@ -122,10 +143,10 @@ export const VotingPhase = () => {
                   key={player.id}
                   onClick={() => handleVote(player.id)}
                   disabled={isSubmitting}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition cursor-pointer group text-left ${
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-150 cursor-pointer group text-left ${
                     isSelected
-                      ? 'bg-emerald-950/40 border-emerald-600/80 shadow-sm ring-1 ring-emerald-500/40'
-                      : 'bg-zinc-950 hover:bg-zinc-800 border-zinc-800 hover:border-zinc-700'
+                      ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/50 shadow-md scale-[1.01]'
+                      : 'bg-zinc-950 hover:bg-zinc-850 border-zinc-800 hover:border-zinc-700'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -158,12 +179,12 @@ export const VotingPhase = () => {
 
                   <div>
                     {isSelected ? (
-                      <span className="px-3 py-1 rounded-lg bg-emerald-900/60 border border-emerald-700 text-emerald-300 font-medium text-xs flex items-center gap-1">
-                        <Check className="w-3 h-3" />
+                      <span className="px-3 py-1.5 rounded-lg bg-emerald-500 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow">
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                         Voted
                       </span>
                     ) : (
-                      <span className="px-3 py-1 rounded-lg bg-zinc-800 text-zinc-300 group-hover:bg-rose-600 group-hover:text-white font-medium text-xs transition">
+                      <span className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 group-hover:bg-rose-600 group-hover:text-white font-medium text-xs transition">
                         Vote
                       </span>
                     )}
@@ -177,9 +198,9 @@ export const VotingPhase = () => {
               <button
                 onClick={() => handleVote('SKIP')}
                 disabled={isSubmitting}
-                className={`w-full flex items-center justify-between p-3 rounded-xl border transition cursor-pointer group text-left ${
+                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-150 cursor-pointer group text-left ${
                   myVotedTargetId === 'SKIP'
-                    ? 'bg-emerald-950/40 border-emerald-600/80 shadow-sm ring-1 ring-emerald-500/40'
+                    ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/50 shadow-md scale-[1.01]'
                     : 'bg-zinc-950/80 hover:bg-zinc-850 border-zinc-800 hover:border-zinc-700'
                 }`}
               >
@@ -199,12 +220,12 @@ export const VotingPhase = () => {
 
                 <div>
                   {myVotedTargetId === 'SKIP' ? (
-                    <span className="px-3 py-1 rounded-lg bg-emerald-900/60 border border-emerald-700 text-emerald-300 font-medium text-xs flex items-center gap-1">
-                      <Check className="w-3 h-3" />
+                    <span className="px-3 py-1.5 rounded-lg bg-emerald-500 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow">
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                       Skipped
                     </span>
                   ) : (
-                    <span className="px-3 py-1 rounded-lg bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-white font-medium text-xs transition">
+                    <span className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-white font-medium text-xs transition">
                       Skip
                     </span>
                   )}

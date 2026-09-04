@@ -33,6 +33,7 @@ export const useProximityChat = ({
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const peersRef = useRef({}); // { [peerId]: { pc, gainNode, pannerNode, analyser, audioEl } }
+  const pendingCandidatesRef = useRef({}); // { [peerId]: [candidate] }
   const animFrameRef = useRef(null);
 
   // 1. Cleanup all WebRTC & AudioContext resources
@@ -70,6 +71,7 @@ export const useProximityChat = ({
 
     setIsSpeaking(false);
     setSpeakingPeers({});
+    pendingCandidatesRef.current = {};
 
     // Remove signaling records for myPlayerId
     if (roomCode && myPlayerId) {
@@ -163,13 +165,20 @@ export const useProximityChat = ({
         } catch (e) {}
       }
 
-      // Hidden HTML audio element as fallback for browser autoplay
+      // Reliable HTML5 audio element for cross-browser playback
+      let audioEl = peersRef.current[peerId]?.audioEl;
       if (!audioEl) {
         audioEl = document.createElement('audio');
-        audioEl.srcObject = remoteStream;
         audioEl.autoplay = true;
-        audioEl.volume = 0; // Handled by Web Audio API gainNode
+        audioEl.playsInline = true;
         document.body.appendChild(audioEl);
+      }
+      audioEl.srcObject = remoteStream;
+      audioEl.volume = 0.8;
+      audioEl.play().catch((err) => console.warn('Audio element play err:', err));
+
+      if (peersRef.current[peerId]) {
+        peersRef.current[peerId].audioEl = audioEl;
       }
     };
 
@@ -212,7 +221,13 @@ export const useProximityChat = ({
       setIsProximityEnabled(false);
     } else {
       try {
+        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume();
+        }
         const stream = await startLocalAudio();
+        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume();
+        }
         setIsProximityEnabled(true);
 
         // Initiate mesh with other players in the room
@@ -264,10 +279,22 @@ export const useProximityChat = ({
         const pc = peerObj?.pc;
         if (!pc) return;
 
+        // Drain helper for buffered ICE candidates
+        const drainCandidates = async () => {
+          const pending = pendingCandidatesRef.current[senderId] || [];
+          for (const cand of pending) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(cand));
+            } catch (e) {}
+          }
+          pendingCandidatesRef.current[senderId] = [];
+        };
+
         // Handle incoming Offer
         if (message.offer && pc.signalingState === 'stable') {
           try {
             await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
+            await drainCandidates();
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
 
@@ -284,6 +311,7 @@ export const useProximityChat = ({
         if (message.answer && pc.signalingState === 'have-local-offer') {
           try {
             await pc.setRemoteDescription(new RTCSessionDescription(message.answer));
+            await drainCandidates();
           } catch (err) {
             console.warn('Error handling answer:', err);
           }
@@ -291,11 +319,19 @@ export const useProximityChat = ({
 
         // Handle incoming ICE Candidates
         if (message.candidates) {
-          Object.values(message.candidates).forEach((cand) => {
-            try {
-              pc.addIceCandidate(new RTCIceCandidate(cand));
-            } catch (err) {}
-          });
+          const cands = Object.values(message.candidates);
+          for (const cand of cands) {
+            if (pc.remoteDescription && pc.remoteDescription.type) {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(cand));
+              } catch (err) {}
+            } else {
+              if (!pendingCandidatesRef.current[senderId]) {
+                pendingCandidatesRef.current[senderId] = [];
+              }
+              pendingCandidatesRef.current[senderId].push(cand);
+            }
+          }
         }
       });
     });
@@ -314,35 +350,43 @@ export const useProximityChat = ({
       const currentSpeakingPeers = {};
 
       Object.entries(peersRef.current).forEach(([peerId, peerObj]) => {
-        const { gainNode, pannerNode, analyser } = peerObj;
+        const { gainNode, pannerNode, analyser, audioEl } = peerObj;
         const peerCursor = remoteCursors[peerId];
 
-        if (gainNode) {
-          if (peerCursor && isInGame) {
-            // Distance on normalized canvas (0 to 1)
-            const dx = peerCursor.x - myPos.x;
-            const dy = peerCursor.y - myPos.y;
-            const dist = Math.hypot(dx, dy);
+        let vol = 0.75;
+        let pan = 0;
 
-            let vol = 0;
-            if (dist <= FULL_VOLUME_DISTANCE) {
-              vol = 1.0;
-            } else if (dist < MAX_PROXIMITY_DISTANCE) {
-              vol = Math.max(0, 1 - (dist - FULL_VOLUME_DISTANCE) / (MAX_PROXIMITY_DISTANCE - FULL_VOLUME_DISTANCE));
-            }
+        if (peerCursor && isInGame) {
+          // Distance on normalized canvas (0 to 1)
+          const dx = peerCursor.x - myPos.x;
+          const dy = peerCursor.y - myPos.y;
+          const dist = Math.hypot(dx, dy);
 
-            // Smooth linear volume ramp
-            gainNode.gain.setTargetAtTime(vol, audioContextRef.current.currentTime, 0.05);
-
-            // Stereo Left/Right Pan
-            if (pannerNode) {
-              const pan = Math.max(-1, Math.min(1, dx * 2.5));
-              pannerNode.pan.setTargetAtTime(pan, audioContextRef.current.currentTime, 0.05);
-            }
+          if (dist <= FULL_VOLUME_DISTANCE) {
+            vol = 1.0;
+          } else if (dist < MAX_PROXIMITY_DISTANCE) {
+            vol = Math.max(0, 1 - (dist - FULL_VOLUME_DISTANCE) / (MAX_PROXIMITY_DISTANCE - FULL_VOLUME_DISTANCE));
           } else {
-            // Comfortable general conversation volume when outside whiteboard
-            gainNode.gain.setTargetAtTime(0.75, audioContextRef.current.currentTime, 0.05);
-            if (pannerNode) pannerNode.pan.setTargetAtTime(0, audioContextRef.current.currentTime, 0.05);
+            vol = 0;
+          }
+
+          pan = Math.max(-1, Math.min(1, dx * 2.5));
+        }
+
+        if (gainNode && audioContextRef.current) {
+          // Smooth linear volume ramp
+          gainNode.gain.setTargetAtTime(vol, audioContextRef.current.currentTime, 0.05);
+          // Stereo Left/Right Pan
+          if (pannerNode) {
+            pannerNode.pan.setTargetAtTime(pan, audioContextRef.current.currentTime, 0.05);
+          }
+        }
+
+        // Also control fallback HTML5 audio element volume directly
+        if (audioEl) {
+          audioEl.volume = Math.max(0, Math.min(1, vol));
+          if (audioEl.paused && vol > 0.05) {
+            audioEl.play().catch(() => {});
           }
         }
 
