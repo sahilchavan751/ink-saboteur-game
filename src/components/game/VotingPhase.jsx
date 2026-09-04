@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Clock, ShieldAlert, Check, Users, Lock } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { CanvasBoard } from './CanvasBoard';
