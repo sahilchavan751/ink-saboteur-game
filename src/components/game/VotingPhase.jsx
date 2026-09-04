@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Clock, ShieldAlert, Check, Users } from 'lucide-react';
+import { Clock, ShieldAlert, Check, Users, Lock } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { CanvasBoard } from './CanvasBoard';
 import { playVote } from '../../utils/sound';
@@ -20,8 +19,9 @@ export const VotingPhase = () => {
   const totalVotesCast = allPlayers.filter((p) => p.hasVoted).length;
   const isSaboteur = roomState.myRole?.isSaboteur || currentPlayer?.isSaboteur;
 
+  // Vote Lock System: One person can vote one time only
   const handleVote = async (targetPlayerId) => {
-    if (isSubmitting) return;
+    if (isSubmitting || hasAlreadyVoted) return;
     setSelectedTargetId(targetPlayerId);
     setIsSubmitting(true);
     playVote();
@@ -114,11 +114,11 @@ export const VotingPhase = () => {
 
           {/* Active Vote Confirmation Status */}
           {hasAlreadyVoted && (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-950/30 border border-emerald-800/60 text-emerald-300 text-xs animate-fadeIn">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-950/40 border border-emerald-700/80 text-emerald-300 text-xs animate-fadeIn">
               <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <Lock className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
-                  Your Vote:{' '}
+                  Vote Locked:{' '}
                   <strong className="text-white">
                     {myVotedTargetId === 'SKIP'
                       ? 'Skip Vote (Abstain)'
@@ -128,7 +128,9 @@ export const VotingPhase = () => {
                   </strong>
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-zinc-500">Click to change</span>
+              <span className="text-[10px] font-mono text-emerald-300 bg-emerald-900/60 px-2 py-0.5 rounded border border-emerald-700/60 flex items-center gap-1">
+                <Lock className="w-2.5 h-2.5" /> Locked
+              </span>
             </div>
           )}
 
@@ -142,11 +144,13 @@ export const VotingPhase = () => {
                 <button
                   key={player.id}
                   onClick={() => handleVote(player.id)}
-                  disabled={isSubmitting}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-150 cursor-pointer group text-left ${
+                  disabled={isSubmitting || hasAlreadyVoted}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-150 text-left ${
                     isSelected
-                      ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/50 shadow-md scale-[1.01]'
-                      : 'bg-zinc-950 hover:bg-zinc-850 border-zinc-800 hover:border-zinc-700'
+                      ? 'bg-emerald-950/60 border-emerald-500 ring-2 ring-emerald-500/60 shadow-md scale-[1.01]'
+                      : hasAlreadyVoted
+                      ? 'bg-zinc-950/50 border-zinc-900 opacity-60 cursor-not-allowed'
+                      : 'bg-zinc-950 hover:bg-zinc-850 border-zinc-800 hover:border-zinc-700 cursor-pointer group'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -180,8 +184,13 @@ export const VotingPhase = () => {
                   <div>
                     {isSelected ? (
                       <span className="px-3 py-1.5 rounded-lg bg-emerald-500 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow">
-                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                        Voted
+                        <Lock className="w-3 h-3 stroke-[2.5]" />
+                        Locked In
+                      </span>
+                    ) : hasAlreadyVoted ? (
+                      <span className="px-3 py-1 rounded-lg bg-zinc-900 text-zinc-600 font-medium text-xs flex items-center gap-1">
+                        <Lock className="w-2.5 h-2.5" />
+                        Locked
                       </span>
                     ) : (
                       <span className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 group-hover:bg-rose-600 group-hover:text-white font-medium text-xs transition">
@@ -197,11 +206,13 @@ export const VotingPhase = () => {
             <div className="pt-2 border-t border-zinc-800/80">
               <button
                 onClick={() => handleVote('SKIP')}
-                disabled={isSubmitting}
-                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-150 cursor-pointer group text-left ${
+                disabled={isSubmitting || hasAlreadyVoted}
+                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-150 text-left ${
                   myVotedTargetId === 'SKIP'
-                    ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/50 shadow-md scale-[1.01]'
-                    : 'bg-zinc-950/80 hover:bg-zinc-850 border-zinc-800 hover:border-zinc-700'
+                    ? 'bg-emerald-950/60 border-emerald-500 ring-2 ring-emerald-500/60 shadow-md scale-[1.01]'
+                    : hasAlreadyVoted
+                    ? 'bg-zinc-950/50 border-zinc-900 opacity-60 cursor-not-allowed'
+                    : 'bg-zinc-950/80 hover:bg-zinc-850 border-zinc-800 hover:border-zinc-700 cursor-pointer group'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -221,8 +232,13 @@ export const VotingPhase = () => {
                 <div>
                   {myVotedTargetId === 'SKIP' ? (
                     <span className="px-3 py-1.5 rounded-lg bg-emerald-500 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow">
-                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                      Skipped
+                      <Lock className="w-3 h-3 stroke-[2.5]" />
+                      Locked In
+                    </span>
+                  ) : hasAlreadyVoted ? (
+                    <span className="px-3 py-1 rounded-lg bg-zinc-900 text-zinc-600 font-medium text-xs flex items-center gap-1">
+                      <Lock className="w-2.5 h-2.5" />
+                      Locked
                     </span>
                   ) : (
                     <span className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-white font-medium text-xs transition">
@@ -239,7 +255,7 @@ export const VotingPhase = () => {
               <Users className="w-3.5 h-3.5" />
               {allPlayers.length} Players in match
             </span>
-            <span>{hasAlreadyVoted ? 'Status: Vote Submitted' : 'Action: Select a Suspect'}</span>
+            <span>{hasAlreadyVoted ? 'Status: Vote Locked (Final)' : 'Action: Select a Suspect'}</span>
           </div>
         </div>
       </div>

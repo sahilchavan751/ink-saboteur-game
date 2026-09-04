@@ -27,11 +27,8 @@ export const GameView = () => {
         </>
       )}
 
-      {/* 2. TURN-BASED DRAWING Phase */}
-      {phase === 'DRAWING' && <DrawingPhase />}
-
-      {/* 3. DRAWING INTERMISSION (5s Breathing Space before voting) */}
-      {phase === 'DRAWING_INTERMISSION' && <DrawingIntermission />}
+      {/* 2. TURN-BASED DRAWING Phase & INTERMISSION */}
+      {(phase === 'DRAWING' || phase === 'DRAWING_INTERMISSION') && <DrawingPhase />}
 
       {/* 4. VOTING Phase */}
       {phase === 'VOTING' && <VotingPhase />}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Eye, EyeOff, RotateCcw, ArrowRight, PenTool, Check, ChevronDown, Radio, Mic, MicOff, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, RotateCcw, ArrowRight, PenTool, Check, ChevronDown, Radio, Mic, MicOff, MessageSquare, Send, CheckCircle2, Clock, Sparkles } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { useProximity } from '../../context/ProximityContext';
 import { CanvasBoard } from './CanvasBoard';
@@ -7,7 +7,7 @@ import { InkBatteryBar } from '../common/InkBatteryBar';
 import { playClick } from '../../utils/sound';
 
 export const DrawingPhase = () => {
-  const { roomState, socket, passTurn } = useGameSocket();
+  const { roomState, socket, passTurn, timer } = useGameSocket();
   const proximity = useProximity();
 
   const [concealed, setConcealed] = useState(false);
@@ -460,6 +460,79 @@ export const DrawingPhase = () => {
           </div>
         </div>
       </div>
+
+      {/* DRAWING INTERMISSION BLURRED OVERLAY WITH COUNTDOWN & ARTIST NAMES */}
+      {roomState.phase === 'DRAWING_INTERMISSION' && (
+        <div className="absolute inset-0 z-50 backdrop-blur-md bg-zinc-950/70 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="max-w-xl w-full bg-zinc-900 border border-zinc-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-950 border border-zinc-800 text-xs font-mono text-amber-400">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>All Artists Done Drawing</span>
+            </div>
+
+            <div className="space-y-1.5">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                Review the Masterpiece
+              </h2>
+              <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
+                Take a moment to inspect all strokes on the whiteboard. Who drew inconsistent with the theme?
+              </p>
+            </div>
+
+            {/* Countdown display */}
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-200">
+              <Clock className="w-5 h-5 text-amber-400 animate-pulse" />
+              <span className="text-xs text-zinc-400 font-mono">Voting begins in:</span>
+              <span className="text-xl font-bold font-mono text-white">
+                {Math.max(0, timer?.timeRemaining ?? 5)}s
+              </span>
+            </div>
+
+            {/* Grid of all players so names are already clearly visible! */}
+            <div className="space-y-2.5 text-left pt-3 border-t border-zinc-800">
+              <div className="flex items-center justify-between text-xs text-zinc-400 font-mono px-1">
+                <span>Artists in this match:</span>
+                <span>{roomState.players?.length || 0} Suspects</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[180px] overflow-y-auto pr-1">
+                {roomState.players?.map((p) => {
+                  const isSelf = p.id === socket?.id;
+                  return (
+                    <div
+                      key={p.id}
+                      className="flex items-center gap-2 p-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs"
+                    >
+                      <div
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-sm bg-zinc-900 border shrink-0"
+                        style={{ borderColor: p.color }}
+                      >
+                        {p.avatar}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-zinc-200 truncate flex items-center gap-1">
+                          <span>{p.name}</span>
+                          {isSelf && (
+                            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-zinc-800 text-zinc-400">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
+                          <span
+                            className="w-1.5 h-1.5 rounded-full inline-block"
+                            style={{ backgroundColor: p.color }}
+                          />
+                          <span>{p.score} pts</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

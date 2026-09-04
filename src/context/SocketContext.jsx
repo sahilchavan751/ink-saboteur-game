@@ -42,14 +42,51 @@ export const SocketProvider = ({ children }) => {
   const isHostRef = useRef(false);
   const tickerRef = useRef(null);
 
-  // Monitor database connection
+  // Monitor database connection and maintain presence
   useEffect(() => {
     const connectedRef = ref(db, '.info/connected');
     const unsubscribe = onValue(connectedRef, (snap) => {
-      setConnected(!!snap.val());
+      const isOnline = !!snap.val();
+      setConnected(isOnline);
+      if (isOnline && roomCode && myPlayerId) {
+        // Re-affirm player presence on reconnection
+        const myPlayerRef = ref(db, `rooms/${roomCode}/players/${myPlayerId}`);
+        update(myPlayerRef, { lastSeen: Date.now() }).catch(() => {});
+        onDisconnect(myPlayerRef).remove();
+        const myCursorRef = ref(db, `rooms/${roomCode}/cursors/${myPlayerId}`);
+        onDisconnect(myCursorRef).remove();
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [roomCode, myPlayerId]);
+
+  // Periodic AFK presence heartbeat to keep connection and room active
+  useEffect(() => {
+    if (!roomCode || !myPlayerId) return;
+
+    const pingInterval = setInterval(() => {
+      const myPlayerRef = ref(db, `rooms/${roomCode}/players/${myPlayerId}`);
+      update(myPlayerRef, { lastSeen: Date.now() }).catch(() => {});
+      update(ref(db, `rooms/${roomCode}`), { lastActivity: Date.now() }).catch(() => {});
+    }, 20000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const myPlayerRef = ref(db, `rooms/${roomCode}/players/${myPlayerId}`);
+        update(myPlayerRef, { lastSeen: Date.now() }).catch(() => {});
+        update(ref(db, `rooms/${roomCode}`), { lastActivity: Date.now() }).catch(() => {});
+        onDisconnect(myPlayerRef).remove();
+        onDisconnect(ref(db, `rooms/${roomCode}/cursors/${myPlayerId}`)).remove();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(pingInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [roomCode, myPlayerId]);
 
   const generateRoomCode = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -422,11 +459,12 @@ export const SocketProvider = ({ children }) => {
       const rawPlayers = data.players || {};
       const playerIds = Object.keys(rawPlayers);
 
-      // Auto-delete room if all players left
+      // Auto-delete room only after 30 minutes of complete inactivity to prevent nuking rooms during AFK
       if (playerIds.length === 0) {
-        remove(roomRef);
-        setRoomState(null);
-        setRoomCode(null);
+        const lastAct = data.lastActivity || 0;
+        if (Date.now() - lastAct > 30 * 60 * 1000) {
+          remove(roomRef);
+        }
         return;
       }
 

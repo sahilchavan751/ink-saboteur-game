@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Hand, Trash2 } from 'lucide-react';
+import { RotateCcw, Hand, Trash2 } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { useProximity } from '../../context/ProximityContext';
 import { playStrokeSound } from '../../utils/sound';
@@ -35,27 +35,18 @@ export const CanvasBoard = ({
   const drawnStrokesCountRef = useRef(0);
   const lastDimensionsRef = useRef({ width: 0, height: 0 });
 
-  // Pan boundary clamp helper
+  // Pan boundary clamp helper so canvas drawing area stays accessible
   const clampPan = useCallback((newX, newY, currentZoom = zoom) => {
     const container = containerRef.current;
     if (!container) return { x: newX, y: newY };
     const rect = container.getBoundingClientRect();
-    const boundX = rect.width * Math.max(0.3, currentZoom - 0.5);
-    const boundY = rect.height * Math.max(0.3, currentZoom - 0.5);
+    const boundX = rect.width * Math.max(0.5, currentZoom * 0.8);
+    const boundY = rect.height * Math.max(0.5, currentZoom * 0.8);
     return {
       x: Math.max(-boundX, Math.min(boundX, newX)),
       y: Math.max(-boundY, Math.min(boundY, newY))
     };
   }, [zoom]);
-
-  const handleZoomChange = (delta) => {
-    setZoom((prev) => {
-      const next = Math.round((prev + delta) * 10) / 10;
-      const clamped = Math.max(0.7, Math.min(2.2, next));
-      setPan((currentPan) => clampPan(currentPan.x, currentPan.y, clamped));
-      return clamped;
-    });
-  };
 
   const handleResetView = () => {
     setZoom(1);
@@ -70,22 +61,21 @@ export const CanvasBoard = ({
     }
   };
 
-  // Wheel zoom handling with passive: false to allow e.preventDefault()
+  // Requirement 5: Smooth, controlled scroll wheel zoom without sudden large jumps
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleWheel = (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        const delta = e.deltaY < 0 ? 0.15 : -0.15;
-        setZoom((prev) => {
-          const next = Math.round((prev + delta) * 10) / 10;
-          const clamped = Math.max(0.7, Math.min(2.2, next));
-          setPan((currentPan) => clampPan(currentPan.x, currentPan.y, clamped));
-          return clamped;
-        });
-      }
+      e.preventDefault();
+      // Silky smooth, controlled step per wheel scroll tick
+      const delta = e.deltaY < 0 ? 0.035 : -0.035;
+      setZoom((prev) => {
+        const next = Math.round((prev + delta) * 100) / 100;
+        const clamped = Math.max(0.7, Math.min(2.2, next));
+        setPan((currentPan) => clampPan(currentPan.x, currentPan.y, clamped));
+        return clamped;
+      });
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
@@ -104,7 +94,7 @@ export const CanvasBoard = ({
     ctx.stroke();
   };
 
-  // Full redraw: executed on container resize, pattern change, or stroke reset
+  // Requirement 3: Full redraw that renders the pattern across the ENTIRE visible screen even when panned
   const fullRedraw = useCallback(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -120,58 +110,72 @@ export const CanvasBoard = ({
     canvas.height = rect.height * dpr;
     lastDimensionsRef.current = { width: rect.width, height: rect.height };
 
-    ctx.scale(dpr, dpr);
+    // Reset transform to draw base background & pattern across full viewport
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // 1. Pure White Board
+    // 1. Pure White Board covering entire container
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, rect.width, rect.height);
 
-    // 2. Render Pattern
+    // 2. Render Seamless Pattern across the WHOLE visible area with modulo offset
     if (pattern === 'dotted') {
       ctx.fillStyle = '#d4d4d8';
-      const spacing = 24;
-      for (let x = spacing; x < rect.width; x += spacing) {
-        for (let y = spacing; y < rect.height; y += spacing) {
+      const spacing = 24 * zoom;
+      const startX = ((pan.x % spacing) + spacing) % spacing;
+      const startY = ((pan.y % spacing) + spacing) % spacing;
+      const dotRadius = 1.2 * Math.min(1.4, Math.max(0.75, zoom));
+
+      for (let x = startX - spacing; x <= rect.width + spacing; x += spacing) {
+        for (let y = startY - spacing; y <= rect.height + spacing; y += spacing) {
           ctx.beginPath();
-          ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+          ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
           ctx.fill();
         }
       }
     } else if (pattern === 'grid') {
       ctx.strokeStyle = '#e4e4e7';
       ctx.lineWidth = 1;
-      const gridSize = 28;
-      for (let x = 0; x < rect.width; x += gridSize) {
+      const gridSize = 28 * zoom;
+      const startX = ((pan.x % gridSize) + gridSize) % gridSize;
+      const startY = ((pan.y % gridSize) + gridSize) % gridSize;
+
+      for (let x = startX - gridSize; x <= rect.width + gridSize; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, rect.height);
         ctx.stroke();
       }
-      for (let y = 0; y < rect.height; y += gridSize) {
+      for (let y = startY - gridSize; y <= rect.height + gridSize; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(rect.width, y);
         ctx.stroke();
       }
     }
-    // 'clean' leaves purely white canvas
 
-    // 3. Render all strokes crisply
+    // 3. Render all strokes transformed with zoom and pan
+    ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, pan.x * dpr, pan.y * dpr);
     strokes.forEach((stroke) => {
       drawStrokeSegment(ctx, stroke, rect.width, rect.height);
     });
-    drawnStrokesCountRef.current = strokes.length;
-  }, [strokes, pattern]);
 
-  // Handle window and element resize
+    // Reset transform
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawnStrokesCountRef.current = strokes.length;
+  }, [strokes, pattern, zoom, pan]);
+
+  // Re-draw on resize and whenever zoom or pan changes
   useEffect(() => {
     fullRedraw();
+  }, [fullRedraw]);
+
+  useEffect(() => {
     const handleResize = () => fullRedraw();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [fullRedraw]);
 
-  // Real-time incremental stroke rendering: draw new strokes without wiping canvas buffer
+  // Real-time incremental stroke rendering
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -182,7 +186,7 @@ export const CanvasBoard = ({
     const rect = container.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
 
-    // If canvas size changed or strokes were cleared/reset, perform full redraw
+    // If strokes cleared or reset, perform full redraw
     if (
       strokes.length === 0 ||
       strokes.length < drawnStrokesCountRef.current ||
@@ -193,20 +197,20 @@ export const CanvasBoard = ({
       return;
     }
 
-    // Incremental draw: only render incoming new strokes!
+    // Incremental draw: render incoming new strokes with transform
     const start = drawnStrokesCountRef.current;
     if (start < strokes.length) {
       ctx.save();
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, pan.x * dpr, pan.y * dpr);
       for (let i = start; i < strokes.length; i++) {
         drawStrokeSegment(ctx, strokes[i], rect.width, rect.height);
       }
       ctx.restore();
       drawnStrokesCountRef.current = strokes.length;
     }
-  }, [strokes, fullRedraw]);
+  }, [strokes, fullRedraw, zoom, pan]);
 
-  // Accurate coordinate normalization taking zoom and pan into account
+  // Accurate coordinate normalization with inverted zoom and pan
   const getNormalizedPos = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -214,8 +218,9 @@ export const CanvasBoard = ({
     const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
     const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
 
-    const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    // Inverse transform mapping screen pixel -> normalized [0, 1]
+    const x = (clientX - rect.left - pan.x) / (rect.width * zoom);
+    const y = (clientY - rect.top - pan.y) / (rect.height * zoom);
     return { x, y };
   };
 
@@ -313,14 +318,14 @@ export const CanvasBoard = ({
       width: brushSize
     };
 
-    // Immediate local drawing for zero-lag instant feedback
+    // Immediate local drawing with current zoom and pan transform
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         const dpr = window.devicePixelRatio || 1;
         ctx.save();
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, pan.x * dpr, pan.y * dpr);
         drawStrokeSegment(ctx, strokeData, lastDimensionsRef.current.width, lastDimensionsRef.current.height);
         ctx.restore();
       }
@@ -354,33 +359,32 @@ export const CanvasBoard = ({
         ref={containerRef}
         className="relative w-full h-full flex-1 min-h-[360px] bg-white rounded-2xl border border-zinc-300 shadow-sm overflow-hidden canvas-wrapper touch-none select-none"
       >
-        {/* Inner Scaled and Panned Canvas Container */}
+        {/* Full Viewport Canvas - Never cut off during pan */}
+        <canvas
+          ref={canvasRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+          className={`w-full h-full block ${
+            isPanMode || (!isInteractive && !isDrawingRef.current)
+              ? 'cursor-grab active:cursor-grabbing'
+              : isInteractive && inkRemaining > 0
+              ? 'cursor-crosshair'
+              : isInteractive && inkRemaining <= 0
+              ? 'cursor-not-allowed'
+              : 'cursor-grab'
+          }`}
+        />
+
+        {/* Pinned Remote Opponent Live Cursors & Speech Bubbles */}
         <div
-          className="w-full h-full relative"
+          className="absolute inset-0 pointer-events-none"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: '0 0',
-            willChange: 'transform'
+            transformOrigin: '0 0'
           }}
         >
-          <canvas
-            ref={canvasRef}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerUp}
-            className={`w-full h-full block ${
-              isPanMode || (!isInteractive && !isDrawingRef.current)
-                ? 'cursor-grab active:cursor-grabbing'
-                : isInteractive && inkRemaining > 0
-                ? 'cursor-crosshair'
-                : isInteractive && inkRemaining <= 0
-                ? 'cursor-not-allowed'
-                : 'cursor-grab'
-            }`}
-          />
-
-          {/* Remote Opponent Live Cursors with High-Contrast Dark Badges & Proximity Indicators */}
           {Object.entries(remoteCursors).map(([id, cursor]) => {
             const isPeerSpeaking = speakingPeers?.[id];
             const peerMsg = [...(proximityMessages || [])].reverse().find(
@@ -451,7 +455,7 @@ export const CanvasBoard = ({
           })()}
         </div>
 
-        {/* Floating Whiteboard Controls Widget: Pan, Zoom In/Out/Reset & Host Clear Board */}
+        {/* Clean Controls Widget: Host Clear Board, Pan Toggle, and 1:1 Reset Indicator (Zoom buttons removed as requested) */}
         <div className="absolute bottom-3 right-3 z-30 flex items-center gap-1.5 p-1.5 rounded-2xl bg-zinc-900/90 backdrop-blur-md border border-zinc-700/80 shadow-xl select-none">
           {/* Host-only Clear Board button */}
           {isHost && (
@@ -486,36 +490,15 @@ export const CanvasBoard = ({
 
           <div className="w-[1px] h-4 bg-zinc-700/80 mx-0.5" />
 
-          {/* Zoom Out Button */}
-          <button
-            type="button"
-            onClick={() => handleZoomChange(-0.2)}
-            disabled={zoom <= 0.7}
-            className="p-1.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-            title="Zoom Out"
-          >
-            <ZoomOut className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Zoom Reset / Level Indicator */}
+          {/* Zoom Level Indicator & 1:1 Reset View Button */}
           <button
             type="button"
             onClick={handleResetView}
-            className="px-2 py-1 rounded-lg text-[11px] font-mono font-semibold text-zinc-300 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
-            title="Reset View (100%)"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold text-zinc-300 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+            title="Reset View (100% Zoom & Center)"
           >
-            {Math.round(zoom * 100)}%
-          </button>
-
-          {/* Zoom In Button */}
-          <button
-            type="button"
-            onClick={() => handleZoomChange(0.2)}
-            disabled={zoom >= 2.2}
-            className="p-1.5 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-            title="Zoom In"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3 h-3 text-zinc-400" />
+            <span>{Math.round(zoom * 100)}%</span>
           </button>
         </div>
 
