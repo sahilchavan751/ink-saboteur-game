@@ -17,6 +17,13 @@ export const CanvasBoard = ({
   // Whiteboard pattern set authoritatively by room settings: 'dotted' | 'grid' | 'clean'
   const pattern = roomState?.whiteboardPattern || 'dotted';
 
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const isDrawingRef = useRef(false);
+  const lastPosRef = useRef(null);
+  const lastDrawTimeRef = useRef(null);
+  const soundThrottleRef = useRef(0);
+
   // Render Whiteboard: Pure White with optional Dotted / Grid / Clean background
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
