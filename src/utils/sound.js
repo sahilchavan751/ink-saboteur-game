@@ -34,15 +34,22 @@ const notifyMuteListeners = (muted) => {
   });
 };
 
-const MUSIC_VOLUME = 0.15; // Gentle, unobtrusive background music level
+let currentMusicVolume = (() => {
+  const saved = localStorage.getItem('ink_saboteur_music_volume');
+  return saved !== null ? Number(saved) : 0.15;
+})();
 
 export const subscribeMuteChange = (callback) => {
   muteListeners.add(callback);
   return () => muteListeners.delete(callback);
 };
 
+export const getMusicVolume = () => currentMusicVolume;
+
 export const setMusicVolume = (vol) => {
   const safeVol = Math.max(0, Math.min(1, vol));
+  currentMusicVolume = safeVol;
+  localStorage.setItem('ink_saboteur_music_volume', safeVol.toString());
   if (bgMusicAudio && !isMuted) {
     bgMusicAudio.volume = safeVol;
   }
@@ -54,7 +61,7 @@ export const startBackgroundMusic = () => {
   if (!bgMusicAudio) {
     bgMusicAudio = new Audio();
     bgMusicAudio.preload = 'auto';
-    bgMusicAudio.volume = MUSIC_VOLUME;
+    bgMusicAudio.volume = currentMusicVolume;
 
     // When current song ends, alternate to the other song
     bgMusicAudio.addEventListener('ended', () => {
@@ -69,7 +76,7 @@ export const startBackgroundMusic = () => {
     bgMusicAudio.src = MUSIC_TRACKS[currentTrackIndex];
     bgMusicAudio.load();
   } else if (!isMuted) {
-    bgMusicAudio.volume = MUSIC_VOLUME;
+    bgMusicAudio.volume = currentMusicVolume;
   }
 
   if (isMuted) {
@@ -77,14 +84,14 @@ export const startBackgroundMusic = () => {
     return;
   }
 
-  bgMusicAudio.volume = MUSIC_VOLUME;
+  bgMusicAudio.volume = currentMusicVolume;
   const playPromise = bgMusicAudio.play();
   if (playPromise !== undefined) {
     playPromise.catch(() => {
       // Browser autoplay policy blocked - start on first user interaction
       const resumeOnGesture = () => {
         if (!isMuted && bgMusicAudio) {
-          bgMusicAudio.volume = MUSIC_VOLUME;
+          bgMusicAudio.volume = currentMusicVolume;
           bgMusicAudio.play().catch(() => {});
         }
         window.removeEventListener('pointerdown', resumeOnGesture);
@@ -106,11 +113,11 @@ export const toggleMute = () => {
     if (isMuted) {
       bgMusicAudio.pause();
     } else {
-      bgMusicAudio.volume = MUSIC_VOLUME;
+      bgMusicAudio.volume = currentMusicVolume;
       bgMusicAudio.play().catch(() => {
         const onUserAction = () => {
           if (!isMuted && bgMusicAudio) {
-            bgMusicAudio.volume = MUSIC_VOLUME;
+            bgMusicAudio.volume = currentMusicVolume;
             bgMusicAudio.play().catch(() => {});
           }
           window.removeEventListener('pointerdown', onUserAction);

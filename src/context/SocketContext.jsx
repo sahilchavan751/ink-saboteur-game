@@ -542,6 +542,7 @@ export const SocketProvider = ({ children }) => {
         timeRemaining: currentTimerVal,
         category: data.category || '',
         hint: data.hint || '',
+        whiteboardPattern: data.whiteboardPattern || 'dotted',
         myRole: myPlayerData ? {
           isSaboteur: myPlayerData.isSaboteur,
           prompt: myPlayerData.prompt,
