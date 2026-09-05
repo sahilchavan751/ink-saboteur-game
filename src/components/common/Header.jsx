@@ -31,7 +31,7 @@ export const Header = () => {
         {/* Minimal Brand Title */}
         <div className="flex items-center shrink-0 z-10">
           <span className="font-bold text-sm sm:text-base text-white drop-shadow-sm tracking-tight whitespace-nowrap">
-            Ink Saboteur
+            InkSpy
           </span>
         </div>
 

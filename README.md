@@ -1,4 +1,4 @@
-# Ink Saboteur ✒️🕵️
+# InkSpy ✒️🕵️
 
 A minimalist, real-time multiplayer simultaneous-drawing social deduction browser game powered by **React (Vite)**, **Tailwind CSS**, and **Firebase Realtime Database**.
 

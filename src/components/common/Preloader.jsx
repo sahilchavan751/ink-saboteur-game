@@ -36,7 +36,7 @@ export const Preloader = ({ minDuration = 1600 }) => {
       {/* Center: App Name with Shimmer Effect */}
       <div className="flex flex-col items-center justify-center text-center">
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight shimmer-text font-sans">
-          Ink Saboteur
+          InkSpy
         </h1>
       </div>
 

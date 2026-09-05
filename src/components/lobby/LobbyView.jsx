@@ -307,7 +307,7 @@ export const LobbyView = () => {
             <div className="flex items-center justify-between border-b border-white/15 pb-3">
               <h3 className="font-bold text-sm text-white flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-sky-400" />
-                How to Play Ink Saboteur
+                How to Play InkSpy
               </h3>
               <button
                 type="button"
