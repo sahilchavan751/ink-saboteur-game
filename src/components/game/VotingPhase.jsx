@@ -39,7 +39,7 @@ export const VotingPhase = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-4 space-y-5 animate-fadeIn">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-col flex-1 h-full min-h-0 overflow-hidden space-y-2.5 animate-fadeIn">
       {/* Top Banner */}
       <div className="bg-black/40 backdrop-blur-2xl border border-white/15 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
         <div className="flex items-center gap-3">
@@ -91,9 +91,9 @@ export const VotingPhase = () => {
       </div>
 
       {/* Main Grid: Artwork Display (Left 3) + Accusation Grid (Right 2) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-5 gap-3 items-stretch h-full overflow-hidden">
         {/* Finished Artwork Showcase */}
-        <div className="lg:col-span-3 space-y-2">
+        <div className="lg:col-span-3 w-full h-full min-h-0 flex flex-col overflow-hidden">
           <CanvasBoard
             isInteractive={false}
             inkRemaining={0}
@@ -102,7 +102,7 @@ export const VotingPhase = () => {
         </div>
 
         {/* Accusation List Panel */}
-        <div className="lg:col-span-2 bg-black/40 backdrop-blur-2xl p-5 rounded-2xl border border-white/15 shadow-lg space-y-4">
+        <div className="lg:col-span-2 flex flex-col bg-black/40 backdrop-blur-2xl p-4 sm:p-5 rounded-2xl border border-white/15 shadow-lg overflow-hidden h-full min-h-0">
           <div className="pb-3 border-b border-white/15 flex items-center justify-between">
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-white/90">
