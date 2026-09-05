@@ -669,7 +669,7 @@ export const SocketProvider = ({ children }) => {
           id: myPlayerId,
           name: hostName.trim().slice(0, 16) || 'Artist_1',
           color: color || '#18181b',
-          avatar: avatar || '🦊',
+          avatar: avatar || '/avatar/dino.png',
           isHost: true,
           score: 0,
           roundScore: 0,
@@ -737,7 +737,7 @@ export const SocketProvider = ({ children }) => {
         id: myPlayerId,
         name: playerName.trim().slice(0, 16) || `Artist_${count + 1}`,
         color: color || '#18181b',
-        avatar: avatar || '🦊',
+        avatar: avatar || '/avatar/dino.png',
         isHost: count === 0 || data.hostId === myPlayerId,
         score: existingPlayers[myPlayerId]?.score || 0,
         roundScore: 0,
@@ -847,7 +847,7 @@ export const SocketProvider = ({ children }) => {
       isDrawing: !!coords.isDrawing,
       name: roomState?.players?.find(p => p.id === myPlayerId)?.name || 'Player',
       color: roomState?.players?.find(p => p.id === myPlayerId)?.color || '#18181b',
-      avatar: roomState?.players?.find(p => p.id === myPlayerId)?.avatar || '🦊',
+      avatar: roomState?.players?.find(p => p.id === myPlayerId)?.avatar || '/avatar/dino.png',
       timestamp: Date.now()
     });
   }, [roomCode, myPlayerId, roomState]);
@@ -1065,7 +1065,7 @@ export const SocketProvider = ({ children }) => {
         senderId: myPlayerId,
         senderName: currentPlayer?.name || 'Player',
         senderColor: currentPlayer?.color || '#3b82f6',
-        senderAvatar: currentPlayer?.avatar || '👤',
+        senderAvatar: currentPlayer?.avatar || '/avatar/dino.png',
         text: cleanText,
         timestamp: Date.now()
       });

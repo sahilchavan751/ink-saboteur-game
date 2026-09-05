@@ -3,6 +3,7 @@ import { RotateCcw, Hand, Trash2 } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { useProximity } from '../../context/ProximityContext';
 import { playStrokeSound } from '../../utils/sound';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 export const CanvasBoard = ({
   playerColor = '#18181b',
@@ -413,8 +414,10 @@ export const CanvasBoard = ({
                     className="block w-3.5 h-3.5 rounded-full border-2 border-zinc-950 shadow-sm"
                     style={{ backgroundColor: cursor.color }}
                   />
-                  <div className="absolute left-4 top-0 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white text-[10px] font-medium whitespace-nowrap shadow flex items-center gap-1">
-                    <span>{cursor.avatar}</span>
+                  <div className="absolute left-4 top-0 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white text-[10px] font-medium whitespace-nowrap shadow flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 rounded overflow-hidden shrink-0 inline-flex items-center justify-center">
+                      <PlayerAvatar avatar={cursor.avatar} name={cursor.name} />
+                    </span>
                     <span className="font-semibold">{cursor.name}</span>
                     {isPeerSpeaking && (
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

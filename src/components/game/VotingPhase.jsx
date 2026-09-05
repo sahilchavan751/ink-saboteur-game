@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Clock, ShieldAlert, Check, Users, Lock } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { CanvasBoard } from './CanvasBoard';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 import { playVote } from '../../utils/sound';
 
 export const VotingPhase = () => {
@@ -156,10 +157,10 @@ export const VotingPhase = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center text-base bg-zinc-900 border"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center bg-zinc-900 border overflow-hidden shrink-0"
                       style={{ borderColor: player.color }}
                     >
-                      {player.avatar}
+                      <PlayerAvatar avatar={player.avatar} name={player.name} />
                     </div>
                     <div>
                       <div className="font-semibold text-sm text-zinc-200 group-hover:text-white transition flex items-center gap-1.5">

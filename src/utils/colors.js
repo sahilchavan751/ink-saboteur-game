@@ -23,9 +23,37 @@ export const getColorById = (id) => {
 };
 
 export const AVATARS = [
-  '🦊', '🐱', '🐙', '🐼', '🦉', '🐸', '🦁', '🐨', '🦄', '🐯', '🐺', '🐲'
+  { id: 'crocodile', name: 'Crocodile', src: '/avatar/crocodile.png' },
+  { id: 'dino', name: 'Dino', src: '/avatar/dino.png' },
+  { id: 'orange-cat', name: 'Cat', src: '/avatar/orange-cat.png' },
+  { id: 'frog', name: 'Frog', src: '/avatar/frog.png' },
+  { id: 'shark', name: 'Shark', src: '/avatar/shark.png' },
+  { id: 'tiger', name: 'Tiger', src: '/avatar/tiger.png' },
+  { id: 'lion', name: 'Lion', src: '/avatar/lion.png' },
+  { id: 'buffalo', name: 'Buffalo', src: '/avatar/buffalo.png' },
+  { id: 'cow', name: 'Cow', src: '/avatar/cow.png' },
+  { id: 'goat', name: 'Goat', src: '/avatar/goat.png' },
+  { id: 'rabbit', name: 'Rabbit', src: '/avatar/rabbit.png' },
+  { id: 'sea-horse', name: 'Sea Horse', src: '/avatar/sea-horse.png' }
 ];
 
 export const getRandomAvatar = () => {
-  return AVATARS[Math.floor(Math.random() * AVATARS.length)];
+  return AVATARS[Math.floor(Math.random() * AVATARS.length)].src;
+};
+
+export const getAvatarSrc = (avatar) => {
+  if (!avatar) return '/avatar/dino.png';
+  if (typeof avatar === 'string') {
+    if (avatar.startsWith('/') || avatar.startsWith('http') || avatar.includes('.png') || avatar.includes('.webp') || avatar.includes('.jpg')) {
+      return avatar;
+    }
+    const match = AVATARS.find(
+      (a) => a.id === avatar.toLowerCase() || a.name.toLowerCase() === avatar.toLowerCase()
+    );
+    if (match) return match.src;
+  }
+  if (typeof avatar === 'object' && avatar?.src) {
+    return avatar.src;
+  }
+  return null;
 };

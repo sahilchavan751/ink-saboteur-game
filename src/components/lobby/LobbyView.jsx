@@ -3,6 +3,7 @@ import { Dices, ArrowRight, PlusCircle, LogIn, Paintbrush, HelpCircle, AlertTria
 import { useGameSocket } from '../../context/SocketContext';
 import { INK_COLORS, AVATARS, getRandomColor, getRandomAvatar } from '../../utils/colors';
 import { playClick } from '../../utils/sound';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 const COOL_NAMES = [
   'DaVinci', 'Picasso', 'Bandit', 'Doodler', 
@@ -171,15 +172,24 @@ export const LobbyView = () => {
                 Random
               </button>
             </div>
-            <input
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              maxLength={16}
-              placeholder="Your name..."
-              className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition"
-              required
-            />
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border-2 bg-zinc-950 flex items-center justify-center shadow-inner"
+                style={{ borderColor: selectedColor.hex }}
+                title="Active Avatar"
+              >
+                <PlayerAvatar avatar={selectedAvatar} name={playerName} />
+              </div>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                maxLength={16}
+                placeholder="Your name..."
+                className="flex-1 px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition"
+                required
+              />
+            </div>
           </div>
 
           {/* If Join Tab: Room Code Input */}
@@ -200,29 +210,46 @@ export const LobbyView = () => {
             </div>
           )}
 
-          {/* Avatar Selector */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-zinc-300">
-              Avatar
-            </label>
-            <div className="flex flex-wrap gap-1.5 justify-center bg-zinc-950 p-2.5 rounded-xl border border-zinc-800">
-              {AVATARS.map((avatar) => (
-                <button
-                  key={avatar}
-                  type="button"
-                  onClick={() => {
-                    playClick();
-                    setSelectedAvatar(avatar);
-                  }}
-                  className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition cursor-pointer ${
-                    selectedAvatar === avatar
-                      ? 'bg-zinc-800 border border-zinc-600 shadow-sm'
-                      : 'hover:bg-zinc-850 opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  {avatar}
-                </button>
-              ))}
+          {/* Cartoon Avatar Selector */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <label className="font-medium text-zinc-300">
+                Choose Your Avatar
+              </label>
+              <span className="font-mono text-zinc-400 text-[11px]">
+                {AVATARS.find((a) => a.src === selectedAvatar)?.name || 'Custom'}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 bg-zinc-950 p-3 rounded-2xl border border-zinc-800">
+              {AVATARS.map((a) => {
+                const isSelected = selectedAvatar === a.src;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => {
+                      playClick();
+                      setSelectedAvatar(a.src);
+                    }}
+                    className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 cursor-pointer ${
+                      isSelected
+                        ? 'border-indigo-500 ring-2 ring-indigo-500/40 scale-105 shadow-md shadow-indigo-500/20'
+                        : 'border-zinc-800/80 hover:border-zinc-600 hover:scale-102 opacity-75 hover:opacity-100'
+                    }`}
+                    title={a.name}
+                  >
+                    <img
+                      src={a.src}
+                      alt={a.name}
+                      className="w-full h-full object-cover select-none pointer-events-none"
+                      loading="lazy"
+                    />
+                    {isSelected && (
+                      <div className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-indigo-500 ring-2 ring-zinc-950" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

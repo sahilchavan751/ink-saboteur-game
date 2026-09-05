@@ -3,6 +3,7 @@ import { Copy, Check, Sliders, Play, Users, Clock, Flame, ShieldAlert, Share2, H
 import { useGameSocket } from '../../context/SocketContext';
 import { SettingsModal } from './SettingsModal';
 import { PlayerGridSkeleton } from '../common/SkeletonLoader';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 import { playClick } from '../../utils/sound';
 
 export const RoomLobby = () => {
@@ -133,10 +134,10 @@ export const RoomLobby = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-zinc-900 border"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center bg-zinc-900 border overflow-hidden shrink-0"
                       style={{ borderColor: player.color }}
                     >
-                      {player.avatar}
+                      <PlayerAvatar avatar={player.avatar} name={player.name} />
                     </div>
 
                     <div>

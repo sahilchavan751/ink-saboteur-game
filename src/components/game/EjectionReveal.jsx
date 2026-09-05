@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useGameSocket } from '../../context/SocketContext';
 import { playClick } from '../../utils/sound';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 export const EjectionReveal = () => {
   const { roomState } = useGameSocket();
@@ -143,10 +144,10 @@ export const EjectionReveal = () => {
       ) : accusedPlayer ? (
         <div className="relative z-10 animate-float mb-8 flex flex-col items-center">
           <div
-            className="w-20 h-20 rounded-2xl bg-zinc-900 border-2 flex items-center justify-center text-4xl shadow-popover"
+            className="w-20 h-20 rounded-2xl bg-zinc-900 border-2 flex items-center justify-center text-4xl shadow-popover overflow-hidden shrink-0"
             style={{ borderColor: accusedPlayer.color }}
           >
-            {accusedPlayer.avatar}
+            <PlayerAvatar avatar={accusedPlayer.avatar} name={accusedPlayer.name} />
           </div>
           <span className="font-mono text-xs text-zinc-400 mt-2 font-medium">
             {accusedPlayer.name}

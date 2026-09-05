@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, Radio } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 import { playClick } from '../../utils/sound';
 
 export const LiveChatPanel = ({ isMobileDrawer = false, onCloseMobile }) => {
@@ -71,8 +72,10 @@ export const LiveChatPanel = ({ isMobileDrawer = false, onCloseMobile }) => {
               >
                 {/* Sender Info (Only if not self) */}
                 {!isMe && (
-                  <div className="flex items-center gap-1 mb-0.5 px-1">
-                    <span className="text-[10px]">{msg.senderAvatar || '👤'}</span>
+                  <div className="flex items-center gap-1.5 mb-0.5 px-1">
+                    <div className="w-4 h-4 rounded-md overflow-hidden bg-zinc-900 border border-zinc-700/60 shrink-0">
+                      <PlayerAvatar avatar={msg.senderAvatar} name={msg.senderName} />
+                    </div>
                     <span
                       className="text-[10px] font-semibold truncate max-w-[110px]"
                       style={{ color: msg.senderColor || '#a1a1aa' }}

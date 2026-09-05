@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { RotateCcw, Home } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { playFanfare, playClick } from '../../utils/sound';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 export const GameOverPodium = () => {
   const { roomState, playAgain, leaveRoom, socket } = useGameSocket();
@@ -77,10 +78,10 @@ export const GameOverPodium = () => {
           {secondPlace && (
             <div className="flex flex-col items-center flex-1 max-w-[130px] space-y-2">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-zinc-950 border"
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-zinc-950 border overflow-hidden shrink-0"
                 style={{ borderColor: secondPlace.color }}
               >
-                {secondPlace.avatar}
+                <PlayerAvatar avatar={secondPlace.avatar} name={secondPlace.name} />
               </div>
               <div className="text-center truncate w-full">
                 <div className="font-semibold text-xs text-zinc-200 truncate">{secondPlace.name}</div>
@@ -96,10 +97,10 @@ export const GameOverPodium = () => {
           {firstPlace && (
             <div className="flex flex-col items-center flex-1 max-w-[150px] space-y-2 -translate-y-3">
               <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl bg-zinc-950 border-2"
+                className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl bg-zinc-950 border-2 overflow-hidden shrink-0"
                 style={{ borderColor: firstPlace.color }}
               >
-                {firstPlace.avatar}
+                <PlayerAvatar avatar={firstPlace.avatar} name={firstPlace.name} />
               </div>
               <div className="text-center truncate w-full">
                 <div className="font-bold text-sm text-zinc-100 truncate">{firstPlace.name}</div>
@@ -115,10 +116,10 @@ export const GameOverPodium = () => {
           {thirdPlace && (
             <div className="flex flex-col items-center flex-1 max-w-[130px] space-y-2">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-zinc-950 border"
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-zinc-950 border overflow-hidden shrink-0"
                 style={{ borderColor: thirdPlace.color }}
               >
-                {thirdPlace.avatar}
+                <PlayerAvatar avatar={thirdPlace.avatar} name={thirdPlace.name} />
               </div>
               <div className="text-center truncate w-full">
                 <div className="font-semibold text-xs text-zinc-200 truncate">{thirdPlace.name}</div>
@@ -145,7 +146,12 @@ export const GameOverPodium = () => {
             >
               <div className="flex items-center gap-3">
                 <span className="font-mono text-zinc-500 w-4 font-semibold">#{idx + 1}</span>
-                <span className="text-base">{player.avatar}</span>
+                <div
+                  className="w-6 h-6 rounded-md overflow-hidden shrink-0 flex items-center justify-center bg-zinc-900 border"
+                  style={{ borderColor: player.color }}
+                >
+                  <PlayerAvatar avatar={player.avatar} name={player.name} />
+                </div>
                 <span className="font-semibold text-zinc-200">{player.name}</span>
               </div>
               <span className="font-mono font-semibold text-zinc-300">

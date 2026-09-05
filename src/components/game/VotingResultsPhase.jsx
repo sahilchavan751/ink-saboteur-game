@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, ShieldAlert, Users, Check, AlertCircle } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { CanvasBoard } from './CanvasBoard';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 export const VotingResultsPhase = () => {
   const { roomState, timer } = useGameSocket();
@@ -112,10 +113,10 @@ export const VotingResultsPhase = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm bg-zinc-900 border"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm bg-zinc-900 border overflow-hidden shrink-0"
                         style={{ borderColor: player.color }}
                       >
-                        {player.avatar}
+                        <PlayerAvatar avatar={player.avatar} name={player.name} />
                       </div>
                       <div>
                         <div className="font-semibold text-sm text-zinc-200 flex items-center gap-1.5">
@@ -145,9 +146,11 @@ export const VotingResultsPhase = () => {
                       {voters.map((v) => (
                         <span
                           key={v.id}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-750 text-[11px] text-zinc-300 font-mono"
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-750 text-[11px] text-zinc-300 font-mono"
                         >
-                          <span>{v.avatar}</span>
+                          <span className="w-3.5 h-3.5 rounded overflow-hidden shrink-0 inline-flex items-center justify-center">
+                            <PlayerAvatar avatar={v.avatar} name={v.name} />
+                          </span>
                           <span className="font-medium text-zinc-200">
                             {v.name}
                             {v.isSelf && ' (Self)'}
@@ -162,23 +165,24 @@ export const VotingResultsPhase = () => {
 
             {/* Skip Vote Breakdown */}
             <div
-              className={`p-3 rounded-xl border transition ${
+              className={`p-3.5 rounded-xl border transition-all ${
                 isSkipWon
-                  ? 'bg-amber-950/30 border-amber-600 shadow-sm ring-1 ring-amber-500/40'
-                  : skipCount > 0
-                  ? 'bg-zinc-950 border-zinc-700'
-                  : 'bg-zinc-950/50 border-zinc-850 opacity-60'
+                  ? 'bg-amber-950/20 border-amber-500/50 shadow-sm'
+                  : 'bg-zinc-950/40 border-zinc-850'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm bg-zinc-900 border border-zinc-700 text-zinc-300">
+                  <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xs">
                     ⏭️
                   </div>
                   <div>
-                    <span className="font-semibold text-sm text-zinc-300">
-                      Skip Vote (Abstain)
-                    </span>
+                    <span className="font-semibold text-sm text-zinc-300">Skipped Vote</span>
+                    {isSkipWon && (
+                      <span className="ml-2 text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-950 border border-amber-800 text-amber-300 font-bold">
+                        No Ejection
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -195,9 +199,11 @@ export const VotingResultsPhase = () => {
                   {skipVoters.map((v) => (
                     <span
                       key={v.id}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-750 text-[11px] text-zinc-300 font-mono"
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-750 text-[11px] text-zinc-300 font-mono"
                     >
-                      <span>{v.avatar}</span>
+                      <span className="w-3.5 h-3.5 rounded overflow-hidden shrink-0 inline-flex items-center justify-center">
+                        <PlayerAvatar avatar={v.avatar} name={v.name} />
+                      </span>
                       <span className="font-medium text-zinc-200">{v.name}</span>
                     </span>
                   ))}

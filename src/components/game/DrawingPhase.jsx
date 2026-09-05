@@ -22,6 +22,7 @@ import { useProximity } from '../../context/ProximityContext';
 import { CanvasBoard } from './CanvasBoard';
 import { InkBatteryBar } from '../common/InkBatteryBar';
 import { LiveChatPanel } from './LiveChatPanel';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 import { playClick } from '../../utils/sound';
 
 const BRUSH_COLORS = [
@@ -463,10 +464,10 @@ export const DrawingPhase = () => {
               }`}
             >
               <div
-                className="w-4 h-4 rounded flex items-center justify-center text-[10px] bg-zinc-900 border"
+                className="w-5 h-5 rounded flex items-center justify-center bg-zinc-900 border overflow-hidden shrink-0"
                 style={{ borderColor: player.color }}
               >
-                {player.avatar}
+                <PlayerAvatar avatar={player.avatar} name={player.name} />
               </div>
               <span className="text-[11px] font-medium truncate max-w-[70px]">
                 {player.name} {isMe && '(You)'}
@@ -532,10 +533,10 @@ export const DrawingPhase = () => {
                         {idx + 1}
                       </span>
                       <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center text-xs bg-zinc-900 border"
+                        className="w-6 h-6 rounded-lg flex items-center justify-center bg-zinc-900 border overflow-hidden shrink-0"
                         style={{ borderColor: player.color }}
                       >
-                        {player.avatar}
+                        <PlayerAvatar avatar={player.avatar} name={player.name} />
                       </div>
                       <div>
                         <div className="flex items-center gap-1 font-medium text-zinc-200">
@@ -624,10 +625,10 @@ export const DrawingPhase = () => {
                       className="flex items-center gap-2 p-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs"
                     >
                       <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-sm bg-zinc-900 border shrink-0"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-zinc-900 border overflow-hidden shrink-0"
                         style={{ borderColor: p.color }}
                       >
-                        {p.avatar}
+                        <PlayerAvatar avatar={p.avatar} name={p.name} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold text-zinc-200 truncate flex items-center gap-1">

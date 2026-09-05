@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CheckCircle2, XCircle, ArrowRight, ShieldCheck, Skull, Send, Clock, Sparkles } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { playClick } from '../../utils/sound';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 export const RevealPhase = () => {
   const { roomState, timer, socket, submitSaboteurGuess, nextRound } = useGameSocket();
@@ -68,10 +69,10 @@ export const RevealPhase = () => {
           </span>
           <div className="flex items-center justify-center gap-3">
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-zinc-950 border-2"
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-zinc-950 border-2 overflow-hidden shrink-0"
               style={{ borderColor: saboteurPlayer?.color }}
             >
-              {saboteurPlayer?.avatar}
+              <PlayerAvatar avatar={saboteurPlayer?.avatar} name={saboteurPlayer?.name} />
             </div>
             <div className="text-left">
               <h2 className="text-xl font-bold text-white">
@@ -192,10 +193,10 @@ export const RevealPhase = () => {
                       #{rank + 1}
                     </span>
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-base bg-zinc-900 border"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-base bg-zinc-900 border overflow-hidden shrink-0"
                       style={{ borderColor: player.color }}
                     >
-                      {player.avatar}
+                      <PlayerAvatar avatar={player.avatar} name={player.name} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
