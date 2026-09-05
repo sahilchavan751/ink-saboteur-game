@@ -54,7 +54,7 @@ export const RoomLobby = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6 space-y-4 animate-fadeIn">
+    <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6 space-y-4 animate-fadeIn pb-12 sm:pb-6">
       {/* Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}

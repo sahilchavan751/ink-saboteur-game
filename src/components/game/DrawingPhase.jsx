@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Eye,
   EyeOff,
@@ -17,7 +18,9 @@ import {
   Sparkles,
   Palette,
   Volume2,
-  VolumeX
+  VolumeX,
+  Users,
+  X
 } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { useProximity } from '../../context/ProximityContext';
@@ -43,7 +46,7 @@ const BRUSH_COLORS = [
 ];
 
 export const DrawingPhase = () => {
-  const { roomState, socket, passTurn, timer } = useGameSocket();
+  const { roomState, socket, passTurn, timer, chatMessages = [] } = useGameSocket();
   const proximity = useProximity();
 
   const [concealed, setConcealed] = useState(false);
@@ -54,26 +57,82 @@ export const DrawingPhase = () => {
   const [whisperOpen, setWhisperOpen] = useState(false);
   const [whisperText, setWhisperText] = useState('');
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [mobileQueueOpen, setMobileQueueOpen] = useState(false);
 
   const brushRef = useRef(null);
   const colorRef = useRef(null);
   const whisperRef = useRef(null);
+  const brushMenuRef = useRef(null);
+  const colorMenuRef = useRef(null);
+  const whisperMenuRef = useRef(null);
 
-  // Close menus on outside click
+  const getBrushMenuPos = () => {
+    if (!brushRef.current) return { top: 70, left: 16 };
+    const rect = brushRef.current.getBoundingClientRect();
+    return {
+      top: rect.bottom + 6,
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - 160))
+    };
+  };
+
+  const getColorMenuPos = () => {
+    if (!colorRef.current) return { top: 70, right: 16 };
+    const rect = colorRef.current.getBoundingClientRect();
+    return {
+      top: rect.bottom + 6,
+      right: Math.max(8, window.innerWidth - rect.right)
+    };
+  };
+
+  const getWhisperMenuPos = () => {
+    if (!whisperRef.current) return { top: 70, right: 16 };
+    const rect = whisperRef.current.getBoundingClientRect();
+    return {
+      top: rect.bottom + 6,
+      right: Math.max(8, window.innerWidth - rect.right)
+    };
+  };
+
+  // Close menus on outside click or resize
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (brushRef.current && !brushRef.current.contains(e.target)) {
+      if (
+        brushRef.current &&
+        !brushRef.current.contains(e.target) &&
+        (!brushMenuRef.current || !brushMenuRef.current.contains(e.target))
+      ) {
         setBrushMenuOpen(false);
       }
-      if (colorRef.current && !colorRef.current.contains(e.target)) {
+      if (
+        colorRef.current &&
+        !colorRef.current.contains(e.target) &&
+        (!colorMenuRef.current || !colorMenuRef.current.contains(e.target))
+      ) {
         setColorMenuOpen(false);
       }
-      if (whisperRef.current && !whisperRef.current.contains(e.target)) {
+      if (
+        whisperRef.current &&
+        !whisperRef.current.contains(e.target) &&
+        (!whisperMenuRef.current || !whisperMenuRef.current.contains(e.target))
+      ) {
         setWhisperOpen(false);
       }
     };
+
+    const handleResize = () => {
+      setBrushMenuOpen(false);
+      setColorMenuOpen(false);
+      setWhisperOpen(false);
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   if (!roomState) return null;
@@ -101,7 +160,7 @@ export const DrawingPhase = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-col flex-1 h-full min-h-0 overflow-hidden space-y-2.5">
+    <div className="w-full max-w-7xl mx-auto px-2.5 sm:px-5 py-1.5 sm:py-2 flex flex-col flex-1 h-full min-h-0 overflow-hidden space-y-2 sm:space-y-2.5">
       {/* Top Unified HUD Toolbar - Perfectly Centered & Aligned, Never Prematurely Wraps */}
       <div className="shrink-0 w-full bg-black/40 backdrop-blur-2xl border border-white/15 p-2 sm:px-3 sm:py-2.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shadow-lg relative z-40">
         {/* Left: Secret Prompt, Role, Theme, Tie-Breaker */}
@@ -166,7 +225,14 @@ export const DrawingPhase = () => {
         </div>
 
         {/* Right: Controls (Turn Status, Battery, Brush dropdown, Color dropdown, Voice, Done, Mobile Chat) */}
-        <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-white/15 relative">
+        <div
+          onScroll={() => {
+            if (brushMenuOpen) setBrushMenuOpen(false);
+            if (colorMenuOpen) setColorMenuOpen(false);
+            if (whisperOpen) setWhisperOpen(false);
+          }}
+          className="flex items-center justify-start sm:justify-end gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar shrink min-w-0 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-white/15 relative overscroll-contain pr-2 sm:pr-0"
+        >
           {/* Pass / Chance Indicator */}
           <div className="hidden lg:flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 text-xs text-white/80 font-mono shrink-0 shadow-sm">
             <RotateCcw className="w-3 h-3 text-white/60" />
@@ -186,7 +252,7 @@ export const DrawingPhase = () => {
                 isMyTurn ? 'bg-emerald-400 animate-pulse' : 'bg-white/40'
               }`}
             />
-            <span className="whitespace-nowrap font-medium text-[11px] sm:text-xs">
+            <span className="whitespace-nowrap font-medium text-[11px] sm:text-xs max-w-[85px] sm:max-w-none truncate">
               {isMyTurn ? 'Your Turn' : `${activePlayer?.name || 'Artist'}'s Turn`}
             </span>
           </div>
@@ -228,42 +294,53 @@ export const DrawingPhase = () => {
             </button>
 
             {/* Brush Popover Dropdown */}
-            {brushMenuOpen && (
-              <div className="absolute top-full mt-2 right-0 z-50 w-36 bg-black/80 backdrop-blur-2xl border border-white/20 rounded-2xl p-1.5 shadow-2xl animate-fadeIn space-y-1">
-                {[
-                  { size: 3, label: 'Fine (3px)' },
-                  { size: 6, label: 'Medium (6px)' },
-                  { size: 12, label: 'Bold (12px)' }
-                ].map(({ size, label }) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => {
-                      playClick();
-                      setBrushSize(size);
-                      setBrushMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer ${
-                      brushSize === size
-                        ? 'bg-white/20 text-white font-semibold border border-white/25'
-                        : 'text-white/70 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="rounded-full bg-current inline-block shrink-0"
-                        style={{
-                          width: size <= 3 ? 4 : size <= 6 ? 7 : 10,
-                          height: size <= 3 ? 4 : size <= 6 ? 7 : 10
-                        }}
-                      />
-                      <span>{label}</span>
-                    </div>
-                    {brushSize === size && <Check className="w-3 h-3 text-emerald-400" />}
-                  </button>
-                ))}
-              </div>
-            )}
+            {brushMenuOpen &&
+              createPortal(
+                <div
+                  ref={brushMenuRef}
+                  style={{
+                    position: 'fixed',
+                    top: `${getBrushMenuPos().top}px`,
+                    left: `${getBrushMenuPos().left}px`,
+                    zIndex: 9999
+                  }}
+                  className="w-36 bg-black/85 backdrop-blur-2xl border border-white/20 rounded-2xl p-1.5 shadow-2xl animate-fadeIn space-y-1"
+                >
+                  {[
+                    { size: 3, label: 'Fine (3px)' },
+                    { size: 6, label: 'Medium (6px)' },
+                    { size: 12, label: 'Bold (12px)' }
+                  ].map(({ size, label }) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => {
+                        playClick();
+                        setBrushSize(size);
+                        setBrushMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer ${
+                        brushSize === size
+                          ? 'bg-white/20 text-white font-semibold border border-white/25'
+                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="rounded-full bg-current inline-block shrink-0"
+                          style={{
+                            width: size <= 3 ? 4 : size <= 6 ? 7 : 10,
+                            height: size <= 3 ? 4 : size <= 6 ? 7 : 10
+                          }}
+                        />
+                        <span>{label}</span>
+                      </div>
+                      {brushSize === size && <Check className="w-3 h-3 text-emerald-400" />}
+                    </button>
+                  ))}
+                </div>,
+                document.body
+              )}
           </div>
 
           {/* Brush Color Horizontal Dropdown in Top Toolbar */}
@@ -290,37 +367,48 @@ export const DrawingPhase = () => {
             </button>
 
             {/* Horizontal Color Dropdown Palette */}
-            {colorMenuOpen && (
-              <div className="absolute top-full mt-2 right-0 z-50 bg-black/80 backdrop-blur-2xl border border-white/20 rounded-2xl p-2.5 shadow-2xl animate-fadeIn">
-                <div className="text-[10px] font-mono uppercase text-white/60 font-semibold mb-1.5 px-0.5 flex items-center justify-between">
-                  <span>Ink Palette</span>
-                  <span
-                    className="w-2.5 h-2.5 rounded-full inline-block border border-white/60"
-                    style={{ backgroundColor: activeBrushColor }}
-                  />
-                </div>
-                <div className="grid grid-cols-6 sm:flex sm:flex-nowrap items-center gap-1.5">
-                  {BRUSH_COLORS.map(({ hex, name }) => (
-                    <button
-                      key={hex}
-                      type="button"
-                      onClick={() => {
-                        playClick();
-                        setBrushColor(hex);
-                        setColorMenuOpen(false);
-                      }}
-                      style={{ backgroundColor: hex }}
-                      className={`w-6 h-6 rounded-full shrink-0 transition-transform hover:scale-125 cursor-pointer border ${
-                        activeBrushColor === hex
-                          ? 'ring-2 ring-white ring-offset-2 ring-offset-black/80 border-white scale-110 shadow-md'
-                          : 'border-white/30 hover:border-white'
-                      }`}
-                      title={name}
+            {colorMenuOpen &&
+              createPortal(
+                <div
+                  ref={colorMenuRef}
+                  style={{
+                    position: 'fixed',
+                    top: `${getColorMenuPos().top}px`,
+                    right: `${getColorMenuPos().right}px`,
+                    zIndex: 9999
+                  }}
+                  className="bg-black/85 backdrop-blur-2xl border border-white/20 rounded-2xl p-2.5 shadow-2xl animate-fadeIn"
+                >
+                  <div className="text-[10px] font-mono uppercase text-white/60 font-semibold mb-1.5 px-0.5 flex items-center justify-between">
+                    <span>Ink Palette</span>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full inline-block border border-white/60"
+                      style={{ backgroundColor: activeBrushColor }}
                     />
-                  ))}
-                </div>
-              </div>
-            )}
+                  </div>
+                  <div className="grid grid-cols-6 sm:flex sm:flex-nowrap items-center gap-1.5">
+                    {BRUSH_COLORS.map(({ hex, name }) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        onClick={() => {
+                          playClick();
+                          setBrushColor(hex);
+                          setColorMenuOpen(false);
+                        }}
+                        style={{ backgroundColor: hex }}
+                        className={`w-6 h-6 rounded-full shrink-0 transition-transform hover:scale-125 cursor-pointer border ${
+                          activeBrushColor === hex
+                            ? 'ring-2 ring-white ring-offset-2 ring-offset-black/80 border-white scale-110 shadow-md'
+                            : 'border-white/30 hover:border-white'
+                        }`}
+                        title={name}
+                      />
+                    ))}
+                  </div>
+                </div>,
+                document.body
+              )}
           </div>
 
           {/* Proximity Short Voice UI in Top Toolbar */}
@@ -408,28 +496,39 @@ export const DrawingPhase = () => {
                   </button>
 
                   {/* Whisper Input Popover */}
-                  {whisperOpen && (
-                    <div className="absolute top-full mt-1.5 right-0 z-50 w-64 bg-black/80 backdrop-blur-2xl border border-white/20 rounded-2xl p-2 shadow-2xl animate-fadeIn">
-                      <form onSubmit={handleSendWhisper} className="flex items-center gap-1.5">
-                        <input
-                          type="text"
-                          value={whisperText}
-                          onChange={(e) => setWhisperText(e.target.value)}
-                          placeholder="Whisper nearby (shows on canvas)..."
-                          maxLength={65}
-                          autoFocus
-                          className="flex-1 bg-black/40 border border-white/15 focus:border-white/35 px-2.5 py-1 rounded-xl text-xs text-white placeholder:text-white/40 focus:outline-none"
-                        />
-                        <button
-                          type="submit"
-                          disabled={!whisperText.trim()}
-                          className="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 disabled:opacity-30 text-white border border-white/20 transition cursor-pointer"
-                        >
-                          <Send className="w-3 h-3" />
-                        </button>
-                      </form>
-                    </div>
-                  )}
+                  {whisperOpen &&
+                    createPortal(
+                      <div
+                        ref={whisperMenuRef}
+                        style={{
+                          position: 'fixed',
+                          top: `${getWhisperMenuPos().top}px`,
+                          right: `${getWhisperMenuPos().right}px`,
+                          zIndex: 9999
+                        }}
+                        className="w-64 bg-black/85 backdrop-blur-2xl border border-white/20 rounded-2xl p-2 shadow-2xl animate-fadeIn"
+                      >
+                        <form onSubmit={handleSendWhisper} className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={whisperText}
+                            onChange={(e) => setWhisperText(e.target.value)}
+                            placeholder="Whisper nearby (shows on canvas)..."
+                            maxLength={65}
+                            autoFocus
+                            className="flex-1 bg-black/40 border border-white/15 focus:border-white/35 px-2.5 py-1 rounded-xl text-xs text-white placeholder:text-white/40 focus:outline-none"
+                          />
+                          <button
+                            type="submit"
+                            disabled={!whisperText.trim()}
+                            className="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 disabled:opacity-30 text-white border border-white/20 transition cursor-pointer"
+                          >
+                            <Send className="w-3 h-3" />
+                          </button>
+                        </form>
+                      </div>,
+                      document.body
+                    )}
                 </>
               )}
             </div>
@@ -450,60 +549,90 @@ export const DrawingPhase = () => {
               <ArrowRight className="w-3 h-3" />
             </button>
           )}
-
-          {/* Mobile Live Chat Toggle Button */}
-          <button
-            type="button"
-            onClick={() => {
-              playClick();
-              setMobileChatOpen(true);
-            }}
-            className="lg:hidden p-1 sm:p-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 text-white/70 hover:text-white hover:border-white/30 transition cursor-pointer shrink-0 shadow-sm"
-            title="Open live chat"
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-          </button>
         </div>
       </div>
 
-      {/* Mobile Queue Horizontal Strip (Visible on mobile screens) */}
-      <div className="shrink-0 lg:hidden bg-black/30 backdrop-blur-2xl border border-white/20 px-3 py-2 rounded-2xl flex items-center gap-2 overflow-x-auto no-scrollbar shadow-sm">
-        <span className="text-[10px] font-mono uppercase text-zinc-500 shrink-0">Queue:</span>
-        {(roomState.turnOrder || []).map((pid, idx) => {
-          const player = roomState.players.find((p) => p.id === pid);
-          if (!player) return null;
+      {/* Mobile Interactive Action Bar: Full Queue & Live Chat Access */}
+      <div className="shrink-0 lg:hidden bg-black/40 backdrop-blur-2xl border border-white/15 px-2.5 py-1.5 rounded-2xl flex items-center justify-between gap-1.5 shadow-sm relative z-30">
+        {/* Left: Queue Button with Pass Counter */}
+        <button
+          type="button"
+          onClick={() => {
+            playClick();
+            setMobileQueueOpen(true);
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold shrink-0 shadow-sm active:scale-95 transition cursor-pointer"
+          title="Open Drawing Queue details"
+        >
+          <Users className="w-3.5 h-3.5 text-indigo-300" />
+          <span className="text-[11px]">Queue</span>
+          <span className="text-[10px] font-mono text-white/80 bg-black/40 px-1.5 py-0.2 rounded border border-white/10 font-bold">
+            {roomState.currentChance || 1}/{roomState.drawChances || 2}
+          </span>
+        </button>
 
-          const turnOrderLen = (roomState.turnOrder || []).length || 1;
-          const activeIndexInLap = (roomState.currentTurnIndex ?? 0) % turnOrderLen;
-          const isCurrent = idx === activeIndexInLap;
-          const hasCompleted = idx < activeIndexInLap;
-          const isMe = pid === socket?.id;
+        {/* Center: Scrollable Live Queue Mini-Avatar Preview (Tapping opens Queue Drawer) */}
+        <div
+          onClick={() => {
+            playClick();
+            setMobileQueueOpen(true);
+          }}
+          className="flex-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 px-1 cursor-pointer"
+          title="Tap to see queue & player scores"
+        >
+          {(roomState.turnOrder || []).map((pid, idx) => {
+            const player = roomState.players?.find((p) => p.id === pid);
+            if (!player) return null;
 
-          return (
-            <div
-              key={pid}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs shrink-0 transition ${
-                isCurrent
-                  ? 'bg-zinc-800 border-zinc-600 shadow-sm text-white'
-                  : hasCompleted
-                  ? 'bg-zinc-950/40 border-zinc-900 text-zinc-500'
-                  : 'bg-zinc-950 border-zinc-800 text-zinc-400'
-              }`}
-            >
+            const turnOrderLen = (roomState.turnOrder || []).length || 1;
+            const activeIndexInLap = (roomState.currentTurnIndex ?? 0) % turnOrderLen;
+            const isCurrent = idx === activeIndexInLap;
+            const hasCompleted = idx < activeIndexInLap;
+            const isMe = pid === socket?.id;
+
+            return (
               <div
-                className="w-5 h-5 rounded flex items-center justify-center bg-zinc-900 border overflow-hidden shrink-0"
-                style={{ borderColor: player.color }}
+                key={pid}
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[10px] shrink-0 transition ${
+                  isCurrent
+                    ? 'bg-white/20 border-white/40 text-white shadow-sm ring-1 ring-emerald-400/50'
+                    : hasCompleted
+                    ? 'bg-black/20 border-white/10 opacity-50 text-white/50'
+                    : 'bg-black/30 border-white/15 text-white/80'
+                }`}
               >
-                <PlayerAvatar avatar={player.avatar} name={player.name} />
+                <div
+                  className="w-4 h-4 rounded-md flex items-center justify-center bg-black/30 border overflow-hidden shrink-0"
+                  style={{ borderColor: player.color }}
+                >
+                  <PlayerAvatar avatar={player.avatar} name={player.name} />
+                </div>
+                <span className="truncate max-w-[55px] font-medium">{player.name}</span>
+                {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />}
+                {hasCompleted && <CheckCircle2 className="w-2.5 h-2.5 text-white/60 shrink-0" />}
               </div>
-              <span className="text-[11px] font-medium truncate max-w-[70px]">
-                {player.name} {isMe && '(You)'}
-              </span>
-              {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
-              {hasCompleted && <CheckCircle2 className="w-3 h-3 text-zinc-500" />}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* Right: Dedicated Live Chat Button with Count Badge */}
+        <button
+          type="button"
+          onClick={() => {
+            playClick();
+            setMobileChatOpen(true);
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-600/40 hover:bg-indigo-600/60 border border-indigo-400/50 text-white text-xs font-semibold shrink-0 shadow-sm active:scale-95 transition cursor-pointer backdrop-blur"
+          title="Open Live Chat"
+        >
+          <MessageSquare className="w-3.5 h-3.5 text-sky-300" />
+          <span className="text-[11px]">Chat</span>
+          {chatMessages.length > 0 && (
+            <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-indigo-500 text-white font-mono shadow-sm">
+              {chatMessages.length}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Main Drawing Area: Maximized Whiteboard & Desktop Queue + Live Chat Rails */}
@@ -690,9 +819,151 @@ export const DrawingPhase = () => {
 
       {/* Mobile Live Chat Drawer Modal */}
       {mobileChatOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-2 sm:p-4 animate-fadeIn">
-          <div className="w-full max-w-md h-[70vh] max-h-[500px]">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setMobileChatOpen(false);
+          }}
+          className="lg:hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-2 sm:p-4 animate-fadeIn"
+        >
+          <div className="w-full max-w-md h-[72vh] max-h-[520px]">
             <LiveChatPanel isMobileDrawer={true} onCloseMobile={() => setMobileChatOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Drawing Queue Drawer Modal */}
+      {mobileQueueOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setMobileQueueOpen(false);
+          }}
+          className="lg:hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center p-2 sm:p-4 animate-fadeIn"
+        >
+          <div className="w-full max-w-md bg-zinc-950/90 backdrop-blur-2xl border border-white/20 rounded-3xl p-4 shadow-2xl flex flex-col max-h-[82vh] overflow-hidden space-y-3">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-2.5 border-b border-white/15 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white tracking-wide">
+                    Drawing Queue
+                  </h3>
+                  <span className="text-[10px] font-mono text-white/50">
+                    Turn order & artist status
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono font-semibold text-white/80 bg-white/10 px-2.5 py-1 rounded-xl border border-white/15">
+                  Pass {roomState.currentChance || 1} / {roomState.drawChances || 2}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setMobileQueueOpen(false);
+                  }}
+                  className="flex items-center gap-1 text-xs font-mono text-white/80 hover:text-white px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 cursor-pointer shadow-sm active:scale-95 transition"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: List of all players in turn order */}
+            <div className="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
+              {(roomState.turnOrder || []).map((pid, idx) => {
+                const player = roomState.players?.find((p) => p.id === pid);
+                if (!player) return null;
+
+                const turnOrderLen = (roomState.turnOrder || []).length || 1;
+                const activeIndexInLap = (roomState.currentTurnIndex ?? 0) % turnOrderLen;
+                const isCurrent = idx === activeIndexInLap;
+                const hasCompleted = idx < activeIndexInLap;
+                const isMe = pid === socket?.id;
+
+                return (
+                  <div
+                    key={pid}
+                    className={`flex items-center justify-between p-2.5 rounded-2xl border transition backdrop-blur ${
+                      isCurrent
+                        ? 'bg-emerald-500/15 border-emerald-400/40 text-white shadow-md ring-1 ring-emerald-400/30'
+                        : hasCompleted
+                        ? 'bg-black/20 border-white/10 opacity-60 text-white/60'
+                        : 'bg-white/[0.06] border-white/15 text-white/90'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {/* Number Rank */}
+                      <span className="font-mono text-xs font-bold text-white/40 w-4 shrink-0 text-center">
+                        #{idx + 1}
+                      </span>
+
+                      {/* Avatar */}
+                      <div
+                        className="w-8 h-8 rounded-xl flex items-center justify-center bg-black/40 border-2 overflow-hidden shrink-0 shadow-inner"
+                        style={{ borderColor: player.color }}
+                      >
+                        <PlayerAvatar avatar={player.avatar} name={player.name} />
+                      </div>
+
+                      {/* Player Details */}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 font-medium text-white">
+                          <span className="truncate max-w-[120px] text-xs font-semibold">{player.name}</span>
+                          {isMe && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 font-semibold">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-white/60 font-mono mt-0.5">
+                          <div className="flex items-center gap-1">
+                            <span
+                              className="w-2 h-2 rounded-full inline-block border border-white/40 shadow-xs"
+                              style={{ backgroundColor: player.color }}
+                            />
+                            <span className="truncate max-w-[60px]">{player.inkName || 'Ink'}</span>
+                          </div>
+                          <span>•</span>
+                          <span className="text-white/80 font-semibold">{player.score || 0} pts</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="shrink-0">
+                      {isCurrent ? (
+                        <span className="text-[10px] font-mono text-emerald-200 font-bold px-2 py-1 rounded-xl bg-emerald-500/25 border border-emerald-400/50 flex items-center gap-1.5 shadow-sm">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                          Drawing Now
+                        </span>
+                      ) : hasCompleted ? (
+                        <span className="text-[10px] font-mono text-white/50 px-2 py-1 rounded-xl bg-black/30 border border-white/10 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-white/60" />
+                          Completed
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono text-white/40 px-2 py-1 rounded-xl bg-black/20 border border-white/10">
+                          Waiting Turn
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bottom Tip Card */}
+            <div className="pt-2 border-t border-white/10 text-center shrink-0">
+              <p className="text-[10px] text-white/50 font-mono">
+                🕵️ Spot the Saboteur by analyzing drawing strokes in real-time!
+              </p>
+            </div>
           </div>
         </div>
       )}

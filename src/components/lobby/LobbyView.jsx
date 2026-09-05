@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   Crown,
   Sparkles,
-  Lock
+  Lock,
+  Check
 } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { INK_COLORS, AVATARS, getRandomColor, getRandomAvatar } from '../../utils/colors';
@@ -137,7 +138,7 @@ export const LobbyView = () => {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-center items-center px-4 py-3 sm:py-6 animate-fadeIn">
+    <div className="w-full flex-1 flex flex-col justify-center items-center px-4 py-3 sm:py-6 pb-12 sm:pb-6 animate-fadeIn">
       {/* Firebase Permission Denied Guidance Banner */}
       {firebaseRuleAlert && (
         <div className="max-w-md w-full mb-3 p-3 rounded-xl bg-zinc-900/95 backdrop-blur border border-amber-500/50 text-amber-200 space-y-2 shadow-xl">
@@ -475,24 +476,37 @@ export const LobbyView = () => {
                   {selectedColor.name}
                 </span>
               </div>
-              <div className="grid grid-cols-12 gap-1.5 bg-black/25 backdrop-blur p-2 rounded-xl border border-white/15">
-                {INK_COLORS.map((color) => (
-                  <button
-                    key={color.id}
-                    type="button"
-                    onClick={() => {
-                      playClick();
-                      setSelectedColor(color);
-                    }}
-                    style={{ backgroundColor: color.hex }}
-                    className={`w-5.5 h-5.5 sm:w-6 sm:h-6 rounded-full transition-transform cursor-pointer border border-white/30 relative mx-auto ${
-                      selectedColor.id === color.id
-                        ? 'scale-115 ring-2 ring-white ring-offset-2 ring-offset-black/40 z-10 shadow-md'
-                        : 'hover:scale-105 opacity-90 hover:opacity-100'
-                    }`}
-                    title={color.name}
-                  />
-                ))}
+              <div className="grid grid-cols-6 sm:grid-cols-12 gap-2.5 sm:gap-1.5 bg-black/30 backdrop-blur-md p-2.5 sm:p-2 rounded-xl border border-white/15 justify-items-center">
+                {INK_COLORS.map((color) => {
+                  const isSelected = selectedColor.id === color.id;
+                  return (
+                    <button
+                      key={color.id}
+                      type="button"
+                      onClick={() => {
+                        playClick();
+                        setSelectedColor(color);
+                      }}
+                      style={{
+                        backgroundColor: color.hex,
+                        width: '24px',
+                        height: '24px',
+                        minWidth: '24px',
+                        minHeight: '24px'
+                      }}
+                      className={`w-6 h-6 rounded-full transition-transform cursor-pointer border border-white/40 relative shrink-0 flex items-center justify-center ${
+                        isSelected
+                          ? 'scale-110 ring-2 ring-white ring-offset-2 ring-offset-black/50 z-10 shadow-md'
+                          : 'hover:scale-105 opacity-85 hover:opacity-100'
+                      }`}
+                      title={color.name}
+                    >
+                      {isSelected && (
+                        <Check className="w-3 h-3 text-white drop-shadow stroke-[3]" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

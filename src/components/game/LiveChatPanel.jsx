@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, Radio } from 'lucide-react';
+import { MessageSquare, Send, Radio, X } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { PlayerAvatar } from '../common/PlayerAvatar';
 import { playClick } from '../../utils/sound';
@@ -50,9 +50,10 @@ export const LiveChatPanel = ({ isMobileDrawer = false, onCloseMobile }) => {
             <button
               type="button"
               onClick={onCloseMobile}
-              className="text-xs font-mono text-white/70 hover:text-white px-2 py-0.5 rounded-lg bg-black/30 border border-white/15 cursor-pointer"
+              className="flex items-center gap-1 text-xs font-mono text-white/80 hover:text-white px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 cursor-pointer shadow-sm active:scale-95 transition"
             >
-              Close
+              <X className="w-3 h-3" />
+              <span>Close</span>
             </button>
           )}
         </div>
