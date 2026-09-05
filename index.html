@@ -10,38 +10,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-      @keyframes shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-      }
-      .shimmer-text {
-        background: linear-gradient(110deg, #52525b 20%, #a1a1aa 38%, #ffffff 50%, #a1a1aa 62%, #52525b 80%);
-        background-size: 200% 100%;
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: shimmer 2.4s ease-in-out infinite;
-        display: inline-block;
-      }
-    </style>
   </head>
   <body class="bg-[#09090b] text-zinc-100 min-h-screen overflow-x-hidden selection:bg-zinc-700 selection:text-white font-sans antialiased">
-    <div id="root">
-      <aside aria-label="App loading screen" style="position:fixed;inset:0;background-color:#09090b;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:2.5rem 1rem;z-index:9999;font-family:'Outfit','Inter',sans-serif;user-select:none;">
-        <div style="height:2rem;"></div>
-        <div style="text-align:center;">
-          <h1 class="shimmer-text" style="font-size:2.25rem;font-weight:800;letter-spacing:-0.03em;margin:0;">
-            Ink Saboteur
-          </h1>
-        </div>
-        <div style="padding-bottom:0.5rem;">
-          <p style="font-size:0.75rem;color:#71717a;font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;margin:0;">
-            - from luxvore studio
-          </p>
-        </div>
-      </aside>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

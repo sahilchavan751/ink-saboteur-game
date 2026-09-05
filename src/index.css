@@ -79,5 +79,6 @@
   -webkit-text-fill-color: transparent;
   animation: shimmer 2.4s ease-in-out infinite;
   display: inline-block;
+  will-change: background-position;
 }
 
