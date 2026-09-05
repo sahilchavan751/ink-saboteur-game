@@ -23,18 +23,18 @@ export const getColorById = (id) => {
 };
 
 export const AVATARS = [
-  { id: 'crocodile', name: 'Crocodile', src: '/avatar/crocodile.png' },
-  { id: 'dino', name: 'Dino', src: '/avatar/dino.png' },
-  { id: 'orange-cat', name: 'Cat', src: '/avatar/orange-cat.png' },
-  { id: 'frog', name: 'Frog', src: '/avatar/frog.png' },
-  { id: 'shark', name: 'Shark', src: '/avatar/shark.png' },
-  { id: 'tiger', name: 'Tiger', src: '/avatar/tiger.png' },
-  { id: 'lion', name: 'Lion', src: '/avatar/lion.png' },
-  { id: 'buffalo', name: 'Buffalo', src: '/avatar/buffalo.png' },
-  { id: 'cow', name: 'Cow', src: '/avatar/cow.png' },
-  { id: 'goat', name: 'Goat', src: '/avatar/goat.png' },
-  { id: 'rabbit', name: 'Rabbit', src: '/avatar/rabbit.png' },
-  { id: 'sea-horse', name: 'Sea Horse', src: '/avatar/sea-horse.png' }
+  { id: 'crocodile', name: 'Crocodile', src: '/avatar/crocodile.webp' },
+  { id: 'dino', name: 'Dino', src: '/avatar/dino.webp' },
+  { id: 'orange-cat', name: 'Cat', src: '/avatar/orange-cat.webp' },
+  { id: 'frog', name: 'Frog', src: '/avatar/frog.webp' },
+  { id: 'shark', name: 'Shark', src: '/avatar/shark.webp' },
+  { id: 'tiger', name: 'Tiger', src: '/avatar/tiger.webp' },
+  { id: 'lion', name: 'Lion', src: '/avatar/lion.webp' },
+  { id: 'buffalo', name: 'Buffalo', src: '/avatar/buffalo.webp' },
+  { id: 'cow', name: 'Cow', src: '/avatar/cow.webp' },
+  { id: 'goat', name: 'Goat', src: '/avatar/goat.webp' },
+  { id: 'rabbit', name: 'Rabbit', src: '/avatar/rabbit.webp' },
+  { id: 'sea-horse', name: 'Sea Horse', src: '/avatar/sea-horse.webp' }
 ];
 
 export const getRandomAvatar = () => {
@@ -42,10 +42,20 @@ export const getRandomAvatar = () => {
 };
 
 export const getAvatarSrc = (avatar) => {
-  if (!avatar) return '/avatar/dino.png';
+  if (!avatar) return '/avatar/dino.webp';
   if (typeof avatar === 'string') {
-    if (avatar.startsWith('/') || avatar.startsWith('http') || avatar.includes('.png') || avatar.includes('.webp') || avatar.includes('.jpg')) {
-      return avatar;
+    const normalized = avatar.startsWith('/avatar/')
+      ? avatar.replace(/\.png$/i, '.webp')
+      : avatar;
+
+    if (
+      normalized.startsWith('/') ||
+      normalized.startsWith('http') ||
+      normalized.includes('.webp') ||
+      normalized.includes('.png') ||
+      normalized.includes('.jpg')
+    ) {
+      return normalized.replace(/\.png$/i, '.webp');
     }
     const match = AVATARS.find(
       (a) => a.id === avatar.toLowerCase() || a.name.toLowerCase() === avatar.toLowerCase()
@@ -53,7 +63,7 @@ export const getAvatarSrc = (avatar) => {
     if (match) return match.src;
   }
   if (typeof avatar === 'object' && avatar?.src) {
-    return avatar.src;
+    return avatar.src.replace(/\.png$/i, '.webp');
   }
   return null;
 };
