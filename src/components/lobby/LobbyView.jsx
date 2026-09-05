@@ -12,7 +12,8 @@ import {
   Sliders,
   ChevronLeft,
   Crown,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { INK_COLORS, AVATARS, getRandomColor, getRandomAvatar } from '../../utils/colors';
@@ -27,7 +28,7 @@ const COOL_NAMES = [
 ];
 
 export const LobbyView = () => {
-  const { createRoom, joinRoom, error, setError, firebaseRuleAlert } = useGameSocket();
+  const { createRoom, joinRoom, getRoomTakenAvatars, error, setError, firebaseRuleAlert } = useGameSocket();
 
   // Navigation mode: 'menu' | 'choice' | 'host' | 'join'
   const [viewMode, setViewMode] = useState(() => {
@@ -44,6 +45,26 @@ export const LobbyView = () => {
   const [loading, setLoading] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Taken avatars in the target room (for Join mode)
+  const [takenAvatars, setTakenAvatars] = useState([]);
+  const [avatarTakenModal, setAvatarTakenModal] = useState({
+    isOpen: false,
+    avatar: '',
+    takenByName: ''
+  });
+
+  // Query taken avatars when typing room code in Join mode
+  useEffect(() => {
+    const cleanCode = roomCodeInput.trim().toUpperCase();
+    if (viewMode === 'join' && cleanCode.length === 4 && getRoomTakenAvatars) {
+      getRoomTakenAvatars(cleanCode).then((taken) => {
+        setTakenAvatars(taken || []);
+      });
+    } else if (viewMode !== 'join') {
+      setTakenAvatars([]);
+    }
+  }, [viewMode, roomCodeInput, getRoomTakenAvatars]);
 
   // Auto-detect invite link with ?room=XXXX
   useEffect(() => {
@@ -81,6 +102,19 @@ export const LobbyView = () => {
   const handleJoinRoom = async (e) => {
     e.preventDefault();
     if (!playerName.trim() || !roomCodeInput.trim() || loading) return;
+
+    // Check if the avatar is known to be taken in this room
+    const conflicting = takenAvatars.find((t) => t.avatar === selectedAvatar);
+    if (conflicting) {
+      playClick();
+      setAvatarTakenModal({
+        isOpen: true,
+        avatar: selectedAvatar,
+        takenByName: conflicting.name || 'Another artist'
+      });
+      return;
+    }
+
     setLoading(true);
     setError(null);
     playClick();
@@ -89,7 +123,14 @@ export const LobbyView = () => {
     try {
       await joinRoom(roomCodeInput.trim().toUpperCase(), playerName.trim(), selectedColor.hex, selectedAvatar);
     } catch (err) {
-      // Handled by context
+      if (err.code === 'AVATAR_TAKEN') {
+        playClick();
+        setAvatarTakenModal({
+          isOpen: true,
+          avatar: selectedAvatar,
+          takenByName: err.conflictingPlayerName || 'Another artist'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -374,29 +415,48 @@ export const LobbyView = () => {
               <div className="grid grid-cols-6 gap-1.5 bg-black/25 backdrop-blur p-2 rounded-xl border border-white/15">
                 {AVATARS.map((a) => {
                   const isSelected = selectedAvatar === a.src;
+                  const takenInfo = viewMode === 'join' ? takenAvatars.find((t) => t.avatar === a.src) : null;
+                  const isTaken = !!takenInfo;
+
                   return (
                     <button
                       key={a.id}
                       type="button"
                       onClick={() => {
                         playClick();
+                        if (isTaken) {
+                          setAvatarTakenModal({
+                            isOpen: true,
+                            avatar: a.src,
+                            takenByName: takenInfo?.name || 'Another artist'
+                          });
+                          return;
+                        }
                         setSelectedAvatar(a.src);
                       }}
-                      className={`group relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-150 cursor-pointer ${
+                      className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-150 cursor-pointer ${
                         isSelected
-                          ? 'border-white ring-2 ring-white/70 scale-105 shadow-md shadow-white/20'
+                          ? 'border-amber-400 ring-2 ring-amber-400/70 scale-105 shadow-md shadow-amber-400/20 z-10'
+                          : isTaken
+                          ? 'border-rose-500/40 opacity-50 hover:opacity-75'
                           : 'border-white/25 hover:border-white/70 hover:scale-105 opacity-90 hover:opacity-100'
                       }`}
-                      title={a.name}
+                      title={isTaken ? `${a.name} (Taken by ${takenInfo?.name})` : a.name}
                     >
-                      <img
-                        src={a.src}
-                        alt={a.name}
+                      <PlayerAvatar
+                        avatar={a.src}
+                        name={a.name}
                         className="w-full h-full object-cover select-none pointer-events-none"
-                        loading="lazy"
                       />
-                      {isSelected && (
-                        <div className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-white ring-1 ring-black/40" />
+                      {isTaken && (
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
+                          <div className="p-1 rounded-full bg-rose-600/90 text-white shadow-sm">
+                            <Lock className="w-3 h-3 stroke-[2.5]" />
+                          </div>
+                        </div>
+                      )}
+                      {isSelected && !isTaken && (
+                        <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-black/60 shadow" />
                       )}
                     </button>
                   );
@@ -520,6 +580,70 @@ export const LobbyView = () => {
                   Vote out the Saboteur. If caught, the Saboteur can guess the real prompt!
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Avatar Already Taken Popup Modal */}
+      {avatarTakenModal.isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md animate-fadeIn"
+          onClick={() => setAvatarTakenModal({ isOpen: false, avatar: '', takenByName: '' })}
+        >
+          <div
+            className="bg-gradient-to-b from-zinc-900 via-zinc-950 to-black p-6 sm:p-7 rounded-3xl border-2 border-amber-400/50 shadow-[0_16px_48px_rgba(0,0,0,0.8)] max-w-sm w-full text-center space-y-4 animate-scaleUp relative overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top radiant glow */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-36 h-36 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
+
+            {/* Taken Avatar with Lock Stamp */}
+            <div className="relative w-24 h-24 mx-auto rounded-3xl overflow-hidden border-2 border-amber-400/50 shadow-2xl bg-black/40 flex items-center justify-center p-1.5">
+              <PlayerAvatar avatar={avatarTakenModal.avatar} className="w-full h-full object-cover rounded-2xl" />
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center gap-1">
+                <div className="p-2 rounded-xl bg-rose-500/90 text-white shadow-lg">
+                  <Lock className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-300 bg-rose-950/90 px-2.5 py-0.5 rounded-full border border-rose-500/50 shadow">
+                  TAKEN
+                </span>
+              </div>
+            </div>
+
+            {/* Text Notice */}
+            <div className="space-y-1.5">
+              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight font-sans">
+                Avatar is Taken!
+              </h3>
+              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                This avatar is already taken by{' '}
+                <span className="text-amber-300 font-bold">{avatarTakenModal.takenByName}</span> in this room.
+              </p>
+              <p className="text-[11px] text-zinc-400">
+                Every artist in the room needs a unique avatar. Please pick another one!
+              </p>
+            </div>
+
+            {/* Action Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  playClick();
+                  // Auto pick next available avatar
+                  const available = AVATARS.filter(
+                    (a) => !takenAvatars.some((t) => t.avatar === a.src)
+                  );
+                  if (available.length > 0) {
+                    setSelectedAvatar(available[0].src);
+                  }
+                  setAvatarTakenModal({ isOpen: false, avatar: '', takenByName: '' });
+                }}
+                className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 hover:from-amber-300 hover:to-amber-400 text-zinc-950 shadow-[0_5px_0_#b45309,0_12px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_3px_0_#b45309] hover:translate-y-[2px] active:translate-y-[5px] active:shadow-none transition-all cursor-pointer"
+              >
+                Choose Another Avatar
+              </button>
             </div>
           </div>
         </div>

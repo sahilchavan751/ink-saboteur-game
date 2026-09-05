@@ -507,9 +507,9 @@ export const DrawingPhase = () => {
       </div>
 
       {/* Main Drawing Area: Maximized Whiteboard & Desktop Queue + Live Chat Rails */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-3 items-stretch h-full">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-3 items-stretch h-full overflow-hidden">
         {/* Whiteboard Hero (3 cols on desktop, full width on mobile) */}
-        <div className="lg:col-span-3 w-full h-full min-h-0 flex flex-col">
+        <div className="lg:col-span-3 w-full h-full min-h-0 flex flex-col overflow-hidden">
           <CanvasBoard
             playerColor={activeBrushColor}
             brushColor={activeBrushColor}
@@ -521,9 +521,9 @@ export const DrawingPhase = () => {
         </div>
 
         {/* Desktop Right Rail: Stacked Drawing Queue & Live Chat */}
-        <div className="hidden lg:flex flex-col gap-3 h-full min-h-0">
+        <div className="hidden lg:flex flex-col gap-3 h-full min-h-0 overflow-hidden">
           {/* Top: Drawing Queue Panel with Inner Scroll */}
-          <div className="flex-1 max-h-[46%] min-h-[160px] flex flex-col bg-black/40 backdrop-blur-2xl p-3 rounded-2xl border border-white/15 shadow-lg">
+          <div className="flex-1 max-h-[46%] min-h-[140px] flex flex-col bg-black/40 backdrop-blur-2xl p-3 rounded-2xl border border-white/15 shadow-lg overflow-hidden">
             <div className="flex items-center justify-between pb-2 border-b border-white/15 shrink-0">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-white/90">
                 Drawing Queue
@@ -604,7 +604,7 @@ export const DrawingPhase = () => {
           </div>
 
           {/* Bottom: Live Chat Panel with Inner Scroll */}
-          <div className="flex-1 min-h-[220px] flex flex-col min-h-0">
+          <div className="flex-1 min-h-0 max-h-[54%] flex flex-col overflow-hidden">
             <LiveChatPanel />
           </div>
         </div>

@@ -7,12 +7,14 @@ import { playClick } from '../../utils/sound';
 export const LiveChatPanel = ({ isMobileDrawer = false, onCloseMobile }) => {
   const { chatMessages, sendChatMessage, socket } = useGameSocket();
   const [inputText, setInputText] = useState('');
-  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const myPlayerId = socket?.id;
 
-  // Auto scroll to latest message
+  // Auto scroll to latest message directly in container without causing ancestor/page scroll jitter
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    container.scrollTop = container.scrollHeight;
   }, [chatMessages]);
 
   const handleSubmit = (e) => {
@@ -24,7 +26,7 @@ export const LiveChatPanel = ({ isMobileDrawer = false, onCloseMobile }) => {
   };
 
   return (
-    <div className={`flex flex-col bg-black/40 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-lg h-full min-h-0 ${isMobileDrawer ? 'p-3' : 'p-3'}`}>
+    <div className={`flex flex-col bg-black/40 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-lg h-full min-h-0 overflow-hidden ${isMobileDrawer ? 'p-3' : 'p-3'}`}>
       {/* Chat Header */}
       <div className="flex items-center justify-between pb-2 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-1.5">
@@ -51,7 +53,10 @@ export const LiveChatPanel = ({ isMobileDrawer = false, onCloseMobile }) => {
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 min-h-0 my-2 text-xs">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-2.5 min-h-0 my-2 text-xs overscroll-contain"
+      >
         {chatMessages.length === 0 ? (
           <div className="h-full min-h-[100px] flex flex-col items-center justify-center text-center p-3">
             <MessageSquare className="w-6 h-6 text-white/30 mb-1.5 stroke-[1.5]" />
@@ -109,7 +114,6 @@ export const LiveChatPanel = ({ isMobileDrawer = false, onCloseMobile }) => {
             );
           })
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Box */}

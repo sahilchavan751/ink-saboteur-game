@@ -706,6 +706,21 @@ export const SocketProvider = ({ children }) => {
     }
   }, [myPlayerId]);
 
+  const getRoomTakenAvatars = useCallback(async (code) => {
+    const cleanCode = (code || '').toUpperCase().trim();
+    if (!cleanCode || cleanCode.length !== 4) return [];
+    try {
+      const snap = await get(ref(db, `rooms/${cleanCode}/players`));
+      if (!snap.exists()) return [];
+      const players = snap.val() || {};
+      return Object.values(players)
+        .filter((p) => p && p.id !== myPlayerId)
+        .map((p) => ({ avatar: p.avatar, name: p.name }));
+    } catch (e) {
+      return [];
+    }
+  }, [myPlayerId]);
+
   const joinRoom = useCallback(async (code, playerName, color, avatar) => {
     setError(null);
     setFirebaseRuleAlert(false);
@@ -732,6 +747,24 @@ export const SocketProvider = ({ children }) => {
       if (count >= (data.maxPlayers || 8) && !existingPlayers[myPlayerId]) {
         setLoadingRoom(false);
         throw new Error('Room is full');
+      }
+
+      const chosenAvatar = avatar || '/avatar/dino.webp';
+
+      // Verify that no other artist in the room has taken this avatar
+      const conflictingPlayer = Object.values(existingPlayers).find(
+        (p) => p && p.id !== myPlayerId && p.avatar === chosenAvatar
+      );
+
+      if (conflictingPlayer) {
+        setLoadingRoom(false);
+        const err = new Error(
+          `This avatar is already taken by ${conflictingPlayer.name || 'another artist'}. Please choose a different avatar.`
+        );
+        err.code = 'AVATAR_TAKEN';
+        err.conflictingPlayerName = conflictingPlayer.name || 'Another artist';
+        err.avatar = chosenAvatar;
+        throw err;
       }
 
       const playerObj = {
@@ -1093,6 +1126,7 @@ export const SocketProvider = ({ children }) => {
         setFirebaseRuleAlert,
         createRoom,
         joinRoom,
+        getRoomTakenAvatars,
         updateSettings,
         startGame,
         passTurn,
