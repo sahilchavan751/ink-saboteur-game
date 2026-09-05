@@ -1,36 +1,20 @@
 import React, { useState } from 'react';
-import { CheckCircle2, XCircle, ArrowRight, ShieldCheck, Skull, Send, Clock, Sparkles } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ShieldCheck, Skull, Clock } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { playClick } from '../../utils/sound';
 import { PlayerAvatar } from '../common/PlayerAvatar';
 
 export const RevealPhase = () => {
-  const { roomState, timer, socket, submitSaboteurGuess, nextRound } = useGameSocket();
-  const [guessInput, setGuessInput] = useState('');
-  const [guessSubmitted, setGuessSubmitted] = useState(false);
+  const { roomState, timer, socket, nextRound } = useGameSocket();
   const [advancing, setAdvancing] = useState(false);
 
   if (!roomState || !roomState.roundResults) return null;
 
   const results = roomState.roundResults;
-  const isMeSaboteur = results.saboteurId === socket?.id;
   const saboteurPlayer = roomState.players.find((p) => p.id === results.saboteurId);
   const currentPlayer = roomState.players.find((p) => p.id === socket?.id);
   const isHost = currentPlayer?.isHost;
   const isFinalRound = roomState.currentRound >= roomState.maxRounds;
-
-  const handleSaboteurGuess = async (e) => {
-    e.preventDefault();
-    if (!guessInput.trim() || guessSubmitted) return;
-    setGuessSubmitted(true);
-    playClick();
-
-    try {
-      await submitSaboteurGuess(guessInput.trim());
-    } catch (err) {
-      alert(err.message || 'Guess failed');
-    }
-  };
 
   const handleNextRound = async () => {
     if (advancing) return;
@@ -45,17 +29,20 @@ export const RevealPhase = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+    <div className="w-full max-w-4xl mx-auto px-4 py-3 sm:py-4 space-y-3.5 flex-1 h-full min-h-0 overflow-y-auto pr-1 sm:pr-2 no-scrollbar animate-fadeIn">
       {/* Top Banner: Round Results & Saboteur Reveal */}
-      <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl text-center space-y-4">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold uppercase bg-zinc-950 border border-zinc-800">
+      <div className="relative bg-black/40 backdrop-blur-2xl border border-white/15 p-5 sm:p-6 rounded-3xl text-center space-y-4 shadow-xl overflow-hidden">
+        {/* Top Edge Ambient Highlight */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold uppercase backdrop-blur-md shadow-sm">
           {results.isSaboteurCaught ? (
-            <span className="text-emerald-400 flex items-center gap-1.5">
+            <span className="text-emerald-300 flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/30 px-3 py-0.5 rounded-full">
               <CheckCircle2 className="w-3.5 h-3.5" />
               Saboteur Identified
             </span>
           ) : (
-            <span className="text-rose-400 flex items-center gap-1.5">
+            <span className="text-rose-300 flex items-center gap-1.5 bg-rose-500/15 border border-rose-400/30 px-3 py-0.5 rounded-full">
               <Skull className="w-3.5 h-3.5" />
               Saboteur Escaped
             </span>
@@ -64,21 +51,25 @@ export const RevealPhase = () => {
 
         {/* Revealed Saboteur Avatar & Name */}
         <div className="space-y-2">
-          <span className="text-[11px] uppercase font-mono tracking-widest text-zinc-500">
+          <span className="text-[10px] sm:text-[11px] uppercase font-mono tracking-widest text-white/50 block">
             The Saboteur Was
           </span>
           <div className="flex items-center justify-center gap-3">
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-zinc-950 border-2 overflow-hidden shrink-0"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl bg-black/40 border-2 overflow-hidden shrink-0 shadow-lg"
               style={{ borderColor: saboteurPlayer?.color }}
             >
               <PlayerAvatar avatar={saboteurPlayer?.avatar} name={saboteurPlayer?.name} />
             </div>
             <div className="text-left">
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-white drop-shadow-sm">
                 {saboteurPlayer?.name}
               </h2>
-              <span className="text-xs font-mono text-zinc-400">
+              <span className="text-xs font-mono text-white/60 flex items-center gap-1.5">
+                <span
+                  className="w-2 h-2 rounded-full inline-block"
+                  style={{ backgroundColor: saboteurPlayer?.color }}
+                />
                 Drew in this ink pigment
               </span>
             </div>
@@ -86,92 +77,36 @@ export const RevealPhase = () => {
         </div>
 
         {/* Prompt Comparison Side-by-Side */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-zinc-800">
-          <div className="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800 text-left space-y-1">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-zinc-300" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-white/10">
+          <div className="bg-black/30 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl border border-white/15 text-left space-y-1 shadow-sm">
+            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-emerald-300/90 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
               Citizens' Real Prompt
             </span>
-            <div className="text-lg font-bold text-zinc-100">
+            <div className="text-base sm:text-lg font-bold text-white tracking-wide">
               "{results.citizenPrompt}"
             </div>
           </div>
 
-          <div className="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800 text-left space-y-1">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 flex items-center gap-1">
-              <Skull className="w-3.5 h-3.5 text-zinc-300" />
+          <div className="bg-black/30 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl border border-white/15 text-left space-y-1 shadow-sm">
+            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-rose-300/90 flex items-center gap-1.5">
+              <Skull className="w-3.5 h-3.5" />
               Saboteur's Fake Prompt
             </span>
-            <div className="text-lg font-bold text-zinc-100">
+            <div className="text-base sm:text-lg font-bold text-white tracking-wide">
               "{results.saboteurPrompt}"
             </div>
           </div>
         </div>
       </div>
 
-      {/* Saboteur Guess Section */}
-      {results.isSaboteurCaught && (
-        <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800 space-y-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-200">
-                Saboteur's Guess (+50 Bonus Points)
-              </h3>
-              <p className="text-xs text-zinc-500">
-                If the Saboteur correctly guesses the Citizens' real prompt, they receive 50 bonus points.
-              </p>
-            </div>
-          </div>
 
-          {isMeSaboteur ? (
-            results.saboteurGuessedPrompt ? (
-              <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 text-xs flex items-center justify-between">
-                <span>
-                  You guessed: <strong>"{results.saboteurGuessedPrompt}"</strong>
-                </span>
-                <span className={results.saboteurGuessCorrect ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold'}>
-                  {results.saboteurGuessCorrect ? '✓ Correct (+50 pts)' : '✗ Incorrect'}
-                </span>
-              </div>
-            ) : (
-              <form onSubmit={handleSaboteurGuess} className="flex gap-2">
-                <input
-                  type="text"
-                  value={guessInput}
-                  onChange={(e) => setGuessInput(e.target.value)}
-                  placeholder="Guess the Citizens' real prompt..."
-                  className="flex-1 px-3.5 py-2 bg-zinc-950 rounded-xl border border-zinc-700 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold text-xs rounded-xl flex items-center gap-1.5 transition cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  Submit
-                </button>
-              </form>
-            )
-          ) : (
-            <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 flex items-center justify-between">
-              <span>
-                Saboteur's Guess: {results.saboteurGuessedPrompt ? `"${results.saboteurGuessedPrompt}"` : 'Waiting for Saboteur...'}
-              </span>
-              {results.saboteurGuessedPrompt && (
-                <span className={results.saboteurGuessCorrect ? 'text-emerald-400 font-medium' : 'text-rose-400 font-medium'}>
-                  {results.saboteurGuessCorrect ? '✓ Correct (+50 pts)' : '✗ Incorrect'}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Standings Breakdown */}
-      <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800 space-y-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 pb-2 border-b border-zinc-800">
-          Round Standings
+      <div className="bg-black/40 backdrop-blur-2xl p-4 sm:p-5 rounded-2xl border border-white/15 space-y-3 shadow-lg">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-white/80 pb-2 border-b border-white/10 flex items-center justify-between">
+          <span>Round Standings</span>
+          <span className="text-[10px] font-mono text-white/50">{roomState.players.length} Players</span>
         </h3>
 
         <div className="space-y-2">
@@ -186,30 +121,30 @@ export const RevealPhase = () => {
               return (
                 <div
                   key={player.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-zinc-950 border border-zinc-800/80"
+                  className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-black/25 backdrop-blur-md border border-white/10 hover:border-white/20 transition"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs text-zinc-500 w-4">
+                    <span className="font-mono text-xs text-white/50 w-4 font-semibold">
                       #{rank + 1}
                     </span>
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-base bg-zinc-900 border overflow-hidden shrink-0"
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-black/30 border overflow-hidden shrink-0 shadow-inner"
                       style={{ borderColor: player.color }}
                     >
                       <PlayerAvatar avatar={player.avatar} name={player.name} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-zinc-200">
+                        <span className="font-semibold text-sm text-white">
                           {player.name}
                         </span>
                         {isSab && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-rose-400 border border-zinc-700">
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-400/30 font-medium">
                             Saboteur
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-zinc-500">
+                      <div className="text-[11px] text-white/50 font-mono">
                         {isSab ? (
                           <span>Survival bonus</span>
                         ) : (
@@ -219,13 +154,13 @@ export const RevealPhase = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     {roundGain > 0 && (
-                      <span className="font-mono text-xs px-2 py-0.5 rounded bg-zinc-800 text-emerald-400 border border-zinc-700 font-medium">
+                      <span className="font-mono text-xs px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-medium">
                         +{roundGain} pts
                       </span>
                     )}
-                    <span className="font-mono font-bold text-sm text-zinc-100">
+                    <span className="font-mono font-bold text-sm text-white">
                       {player.score} pts
                     </span>
                   </div>
@@ -236,23 +171,23 @@ export const RevealPhase = () => {
       </div>
 
       {/* Advance Footer Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-zinc-900 p-4 rounded-xl border border-zinc-800">
-        <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
-          <Clock className="w-3.5 h-3.5 text-zinc-500" />
-          <span>Auto-advancing in: <strong>{Math.max(0, timer.timeRemaining)}s</strong></span>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-black/40 backdrop-blur-2xl p-3.5 sm:p-4 rounded-2xl border border-white/15 shadow-lg">
+        <div className="flex items-center gap-2 text-xs font-mono text-white/70">
+          <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+          <span>Auto-advancing in: <strong className="text-amber-300 font-mono">{Math.max(0, timer?.timeRemaining ?? 0)}s</strong></span>
         </div>
 
         {isHost ? (
           <button
             onClick={handleNextRound}
             disabled={advancing}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-900 font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md active:scale-95"
           >
             <span>{isFinalRound ? 'View Final Results' : 'Next Round'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         ) : (
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-white/50 font-mono">
             Waiting for host to advance...
           </span>
         )}

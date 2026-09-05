@@ -42,8 +42,8 @@ const MainContent = () => {
         />
       </div>
 
-      {/* Persistent Minimalist Header - Only shown in game/room, hidden for main lobby */}
-      {roomState && <Header />}
+      {/* Persistent Minimalist Header - Only shown in game/room, hidden for main lobby and cinematic ejection screen */}
+      {roomState && roomState.phase !== 'EJECTION_REVEAL' && <Header />}
 
       {/* Main Content Area */}
       <main className="flex-1 w-full relative z-10 flex flex-col min-h-0">

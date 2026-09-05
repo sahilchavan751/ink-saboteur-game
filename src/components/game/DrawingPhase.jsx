@@ -612,34 +612,39 @@ export const DrawingPhase = () => {
 
       {/* DRAWING INTERMISSION BLURRED OVERLAY WITH COUNTDOWN & ARTIST NAMES */}
       {roomState.phase === 'DRAWING_INTERMISSION' && (
-        <div className="absolute inset-0 z-50 backdrop-blur-xl bg-black/60 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="max-w-xl w-full bg-black/40 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6 text-center">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 border border-white/15 text-xs font-mono text-amber-300 backdrop-blur shadow-sm">
+        <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/40 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="relative max-w-lg w-full bg-black/45 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 sm:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.5)] space-y-5 text-center overflow-hidden">
+            {/* Top Specular Edge Glow */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent pointer-events-none" />
+
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-mono text-amber-300 backdrop-blur-md shadow-sm">
               <Sparkles className="w-3.5 h-3.5" />
               <span>All Artists Done Drawing</span>
             </div>
 
             <div className="space-y-1.5">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight drop-shadow-sm">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-md">
                 Review the Masterpiece
               </h2>
-              <p className="text-xs sm:text-sm text-white/80 max-w-md mx-auto drop-shadow-sm">
+              <p className="text-xs sm:text-sm text-white/70 max-w-sm mx-auto leading-relaxed">
                 Take a moment to inspect all strokes on the whiteboard. Who drew inconsistent with the theme?
               </p>
             </div>
 
             {/* Countdown display */}
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-black/35 backdrop-blur border border-white/15 text-white shadow-sm">
-              <Clock className="w-5 h-5 text-amber-300 animate-pulse" />
-              <span className="text-xs text-white/60 font-mono">Voting begins in:</span>
-              <span className="text-xl font-bold font-mono text-white">
-                {Math.max(0, timer?.timeRemaining ?? 5)}s
-              </span>
+            <div>
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/15 text-white shadow-inner">
+                <Clock className="w-4 h-4 text-amber-300 animate-pulse" />
+                <span className="text-xs text-white/60 font-mono">Voting begins in:</span>
+                <span className="text-xl font-bold font-mono text-amber-300">
+                  {Math.max(0, timer?.timeRemaining ?? 5)}s
+                </span>
+              </div>
             </div>
 
             {/* Grid of all players so names are already clearly visible! */}
-            <div className="space-y-2.5 text-left pt-3 border-t border-white/15">
-              <div className="flex items-center justify-between text-xs text-white/70 font-mono px-1">
+            <div className="space-y-2 text-left pt-3 border-t border-white/15">
+              <div className="flex items-center justify-between text-[11px] text-white/60 font-mono px-1">
                 <span>Artists in this match:</span>
                 <span>{roomState.players?.length || 0} Suspects</span>
               </div>
@@ -649,10 +654,10 @@ export const DrawingPhase = () => {
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center gap-2 p-2 rounded-xl bg-black/25 backdrop-blur border border-white/15 text-xs text-white"
+                      className="flex items-center gap-2.5 p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] backdrop-blur-md border border-white/15 text-xs text-white transition shadow-sm"
                     >
                       <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-black/30 border overflow-hidden shrink-0 shadow-inner"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-black/40 border overflow-hidden shrink-0 shadow-inner"
                         style={{ borderColor: p.color }}
                       >
                         <PlayerAvatar avatar={p.avatar} name={p.name} />
@@ -661,7 +666,7 @@ export const DrawingPhase = () => {
                         <div className="font-semibold text-white truncate flex items-center gap-1">
                           <span>{p.name}</span>
                           {isSelf && (
-                            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-white/20 text-white font-medium border border-white/10">
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-white/20 text-white font-semibold border border-white/20">
                               You
                             </span>
                           )}

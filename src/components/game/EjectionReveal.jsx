@@ -13,25 +13,26 @@ export const EjectionReveal = () => {
   const accusedPlayer = roomState?.players?.find((p) => p.id === accusedId);
   const isSaboteur = accusedId === results?.saboteurId;
 
-  // Primary typewriter text
+  // Clean, minimal primary & secondary text
   let targetPrimaryText = '';
   let targetSecondaryText = '';
 
   if (isTie) {
-    targetPrimaryText = results?.isSkipWon ? 'Voting was skipped.' : 'Voting resulted in a tie.';
-    targetSecondaryText = 'No one was ejected. Drawing continues on the whiteboard...';
+    targetPrimaryText = results?.isSkipWon ? 'Voting was skipped.' : 'Voting tied.';
+    targetSecondaryText = 'No one was ejected.';
   } else if (accusedPlayer) {
     targetPrimaryText = `${accusedPlayer.name} was ${isSaboteur ? 'the' : 'not the'} Saboteur.`;
     targetSecondaryText = isSaboteur ? '0 Saboteurs remain.' : '1 Saboteur remains.';
   } else {
     targetPrimaryText = 'No one was voted out.';
-    targetSecondaryText = 'Drawing continues on the whiteboard...';
+    targetSecondaryText = 'Drawing continues.';
   }
 
   const [displayedPrimary, setDisplayedPrimary] = useState('');
   const [displayedSecondary, setDisplayedSecondary] = useState('');
+  const [isTyping, setIsTyping] = useState(true);
 
-  // 1. White drops falling down canvas animation
+  // 1. White celestial drops / speed lines falling down canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -47,14 +48,14 @@ export const EjectionReveal = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    // Create 70 falling white drops
-    const drops = Array.from({ length: 70 }).map(() => ({
+    // 60 falling celestial streaks
+    const drops = Array.from({ length: 60 }).map(() => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      length: Math.random() * 12 + 6,
-      speed: Math.random() * 4 + 2,
-      opacity: Math.random() * 0.7 + 0.3,
-      radius: Math.random() * 1.5 + 0.8
+      length: Math.random() * 14 + 6,
+      speed: Math.random() * 3.5 + 2,
+      opacity: Math.random() * 0.6 + 0.2,
+      radius: Math.random() * 1.4 + 0.6
     }));
 
     const render = () => {
@@ -69,13 +70,13 @@ export const EjectionReveal = () => {
         }
 
         ctx.beginPath();
-        ctx.fillStyle = `rgba(244, 244, 245, ${drop.opacity})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${drop.opacity})`;
         ctx.arc(drop.x, drop.y, drop.radius, 0, Math.PI * 2);
         ctx.fill();
 
         // Droplet trail
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(244, 244, 245, ${drop.opacity * 0.4})`;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${drop.opacity * 0.35})`;
         ctx.lineWidth = drop.radius;
         ctx.moveTo(drop.x, drop.y);
         ctx.lineTo(drop.x, drop.y - drop.length);
@@ -90,12 +91,13 @@ export const EjectionReveal = () => {
     return () => cancelAnimationFrame(animId);
   }, []);
 
-  // 2. Typewriter Effect
+  // 2. Typewriter Effect (Fast, rhythmic, minimal)
   useEffect(() => {
     let charIndex = 0;
     let secIndex = 0;
     setDisplayedPrimary('');
     setDisplayedSecondary('');
+    setIsTyping(true);
 
     const primaryInterval = setInterval(() => {
       if (charIndex < targetPrimaryText.length) {
@@ -104,7 +106,8 @@ export const EjectionReveal = () => {
         charIndex++;
       } else {
         clearInterval(primaryInterval);
-        // Start secondary subtitle after brief pause
+
+        // Start clean secondary text after slight pause
         setTimeout(() => {
           const secondaryInterval = setInterval(() => {
             if (secIndex < targetSecondaryText.length) {
@@ -112,11 +115,12 @@ export const EjectionReveal = () => {
               secIndex++;
             } else {
               clearInterval(secondaryInterval);
+              setIsTyping(false);
             }
-          }, 60);
-        }, 500);
+          }, 45);
+        }, 350);
       }
-    }, 80);
+    }, 65);
 
     return () => {
       clearInterval(primaryInterval);
@@ -131,47 +135,41 @@ export const EjectionReveal = () => {
         className="absolute inset-0 w-full h-full pointer-events-none"
       />
 
-      {/* Tie State or Floating Ejected Player in Space */}
+      {/* Floating Center Subject (Avatar or Tie Icon) — Clean & Minimal */}
       {isTie ? (
-        <div className="relative z-10 mb-8 flex flex-col items-center animate-fadeIn">
-          <div className="w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-4xl shadow-popover">
+        <div className="relative z-10 animate-float mb-6 flex flex-col items-center">
+          <div className="w-20 h-20 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/20 flex items-center justify-center text-3xl shadow-[0_0_35px_rgba(0,0,0,0.7)]">
             ⚖️
           </div>
-          <span className="font-mono text-xs uppercase tracking-wider text-amber-400 mt-3 font-semibold bg-zinc-900/90 px-3 py-1 rounded-full border border-amber-500/30">
-            {results?.isSkipWon ? 'Vote Skipped • Round Continues' : 'Vote Tied • Round Continues'}
-          </span>
         </div>
       ) : accusedPlayer ? (
-        <div className="relative z-10 animate-float mb-8 flex flex-col items-center">
+        <div className="relative z-10 animate-float mb-6 flex flex-col items-center">
           <div
-            className="w-20 h-20 rounded-2xl bg-zinc-900 border-2 flex items-center justify-center text-4xl shadow-popover overflow-hidden shrink-0"
-            style={{ borderColor: accusedPlayer.color }}
+            className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-black/40 backdrop-blur-xl border-2 flex items-center justify-center overflow-hidden shrink-0 shadow-[0_0_35px_rgba(0,0,0,0.8)]"
+            style={{
+              borderColor: accusedPlayer.color,
+              boxShadow: `0 0 30px ${accusedPlayer.color}40`
+            }}
           >
             <PlayerAvatar avatar={accusedPlayer.avatar} name={accusedPlayer.name} />
           </div>
-          <span className="font-mono text-xs text-zinc-400 mt-2 font-medium">
-            {accusedPlayer.name}
-          </span>
         </div>
       ) : null}
 
       {/* Typewriter Text Display */}
-      <div className="relative z-10 text-center px-4 max-w-xl space-y-3">
-        <h2 className="font-mono text-xl sm:text-2xl font-bold tracking-wider text-zinc-100 min-h-[36px]">
+      <div className="relative z-10 text-center px-4 max-w-xl space-y-2.5">
+        <h2 className="font-mono text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-white min-h-[36px] drop-shadow-md">
           {displayedPrimary}
-          <span className="animate-pulse inline-block w-2.5 h-5 bg-zinc-400 ml-1 translate-y-0.5" />
+          {isTyping && (
+            <span className="animate-pulse inline-block w-2.5 h-5 sm:h-6 bg-white/80 ml-1.5 translate-y-0.5" />
+          )}
         </h2>
 
         {displayedSecondary && (
-          <p className="font-mono text-sm text-zinc-400 tracking-wide animate-fadeIn">
-            ({displayedSecondary})
+          <p className="font-mono text-xs sm:text-sm text-white/50 tracking-widest uppercase font-medium animate-fadeIn">
+            {displayedSecondary}
           </p>
         )}
-      </div>
-
-      {/* Subtle timer badge */}
-      <div className="absolute bottom-8 text-center text-xs font-mono text-zinc-500">
-        {isTie ? 'Returning to whiteboard drawing in a few seconds...' : 'Reviewing results...'}
       </div>
     </div>
   );
