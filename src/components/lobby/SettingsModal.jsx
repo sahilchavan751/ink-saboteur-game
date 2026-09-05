@@ -50,17 +50,17 @@ export const SettingsModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-zinc-950/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-elevated flex flex-col max-h-[92vh] sm:max-h-[85vh] my-auto overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-md animate-fadeIn overflow-y-auto">
+      <div className="w-full max-w-md bg-black/40 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.45)] flex flex-col max-h-[92vh] sm:max-h-[85vh] my-auto overflow-hidden">
         {/* Modal Header (Fixed at top) */}
-        <div className="shrink-0 px-5 sm:px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+        <div className="shrink-0 px-5 sm:px-6 py-4 border-b border-white/15 flex items-center justify-between bg-black/20 backdrop-blur">
           <div className="flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-zinc-400" />
-            <h2 className="text-sm font-semibold text-zinc-100">Match Customization</h2>
+            <Sliders className="w-4 h-4 text-sky-400" />
+            <h2 className="text-sm font-semibold text-white drop-shadow-sm">Match Customization</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-zinc-500 hover:text-zinc-200 transition cursor-pointer p-1"
+            className="text-white/60 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-white/10"
           >
             <X className="w-4 h-4" />
           </button>
@@ -69,13 +69,13 @@ export const SettingsModal = ({ isOpen, onClose }) => {
         {/* Scrollable Settings Form */}
         <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4">
           {/* 1. Turn Duration per player */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <label className="font-medium text-zinc-300 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-zinc-500" />
+              <label className="font-medium text-white/90 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-white/60" />
                 Turn Draw Time (Per Player)
               </label>
-              <span className="font-mono text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 font-semibold">
+              <span className="font-mono text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 font-semibold text-xs shadow-inner">
                 {turnDuration}s
               </span>
             </div>
@@ -86,9 +86,9 @@ export const SettingsModal = ({ isOpen, onClose }) => {
               step="1"
               value={turnDuration}
               onChange={(e) => setTurnDuration(e.target.value)}
-              className="w-full accent-zinc-200 cursor-pointer h-1.5 bg-zinc-950 rounded appearance-none"
+              className="w-full accent-white cursor-pointer h-1.5 bg-black/35 rounded-lg appearance-none border border-white/15"
             />
-            <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+            <div className="flex justify-between text-[10px] text-white/60 font-mono">
               <span>5s Blitz</span>
               <span>10s Standard</span>
               <span>30s Long</span>
@@ -96,13 +96,13 @@ export const SettingsModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* 2. Draw Chances per Player */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <label className="font-medium text-zinc-300 flex items-center gap-1.5">
-                <RotateCcw className="w-3.5 h-3.5 text-zinc-500" />
+              <label className="font-medium text-white/90 flex items-center gap-1.5">
+                <RotateCcw className="w-3.5 h-3.5 text-white/60" />
                 Draw Chances Per Player (Turns / Round)
               </label>
-              <span className="font-mono text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 font-semibold">
+              <span className="font-mono text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 font-semibold text-xs shadow-inner">
                 {drawChances} {drawChances === 1 ? 'Turn' : 'Turns'}
               </span>
             </div>
@@ -113,23 +113,23 @@ export const SettingsModal = ({ isOpen, onClose }) => {
               step="1"
               value={drawChances}
               onChange={(e) => setDrawChances(e.target.value)}
-              className="w-full accent-zinc-200 cursor-pointer h-1.5 bg-zinc-950 rounded appearance-none"
+              className="w-full accent-white cursor-pointer h-1.5 bg-black/35 rounded-lg appearance-none border border-white/15"
             />
-            <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+            <div className="flex justify-between text-[10px] text-white/60 font-mono">
               <span>1 Turn (Quick)</span>
               <span>2 Turns (Fair)</span>
               <span>4 Turns (Deep)</span>
             </div>
           </div>
 
-          {/* 2. Review Intermission before voting */}
-          <div className="space-y-1">
+          {/* 3. Review Intermission before voting */}
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <label className="font-medium text-zinc-300 flex items-center gap-1.5">
-                <Hourglass className="w-3.5 h-3.5 text-zinc-500" />
+              <label className="font-medium text-white/90 flex items-center gap-1.5">
+                <Hourglass className="w-3.5 h-3.5 text-white/60" />
                 Intermission Pause Before Voting
               </label>
-              <span className="font-mono text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 font-semibold">
+              <span className="font-mono text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 font-semibold text-xs shadow-inner">
                 {intermissionDuration}s
               </span>
             </div>
@@ -140,23 +140,23 @@ export const SettingsModal = ({ isOpen, onClose }) => {
               step="1"
               value={intermissionDuration}
               onChange={(e) => setIntermissionDuration(e.target.value)}
-              className="w-full accent-zinc-200 cursor-pointer h-1.5 bg-zinc-950 rounded appearance-none"
+              className="w-full accent-white cursor-pointer h-1.5 bg-black/35 rounded-lg appearance-none border border-white/15"
             />
-            <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+            <div className="flex justify-between text-[10px] text-white/60 font-mono">
               <span>3s Quick</span>
               <span>5s Standard</span>
               <span>10s Relaxed</span>
             </div>
           </div>
 
-          {/* 3. Voting Duration */}
-          <div className="space-y-1">
+          {/* 4. Voting Duration */}
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <label className="font-medium text-zinc-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-zinc-500" />
+              <label className="font-medium text-white/90 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-white/60" />
                 Voting Discussion Duration
               </label>
-              <span className="font-mono text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 font-semibold">
+              <span className="font-mono text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 font-semibold text-xs shadow-inner">
                 {votingDuration}s
               </span>
             </div>
@@ -167,18 +167,18 @@ export const SettingsModal = ({ isOpen, onClose }) => {
               step="5"
               value={votingDuration}
               onChange={(e) => setVotingDuration(e.target.value)}
-              className="w-full accent-zinc-200 cursor-pointer h-1.5 bg-zinc-950 rounded appearance-none"
+              className="w-full accent-white cursor-pointer h-1.5 bg-black/35 rounded-lg appearance-none border border-white/15"
             />
           </div>
 
-          {/* 4. Total Rounds */}
-          <div className="space-y-1">
+          {/* 5. Total Rounds */}
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <label className="font-medium text-zinc-300 flex items-center gap-1.5">
-                <RotateCcw className="w-3.5 h-3.5 text-zinc-500" />
+              <label className="font-medium text-white/90 flex items-center gap-1.5">
+                <RotateCcw className="w-3.5 h-3.5 text-white/60" />
                 Total Match Rounds
               </label>
-              <span className="font-mono text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 font-semibold">
+              <span className="font-mono text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 font-semibold text-xs shadow-inner">
                 {maxRounds} Rounds
               </span>
             </div>
@@ -189,18 +189,18 @@ export const SettingsModal = ({ isOpen, onClose }) => {
               step="1"
               value={maxRounds}
               onChange={(e) => setMaxRounds(e.target.value)}
-              className="w-full accent-zinc-200 cursor-pointer h-1.5 bg-zinc-950 rounded appearance-none"
+              className="w-full accent-white cursor-pointer h-1.5 bg-black/35 rounded-lg appearance-none border border-white/15"
             />
           </div>
 
-          {/* 5. Max Players */}
-          <div className="space-y-1">
+          {/* 6. Max Players */}
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <label className="font-medium text-zinc-300 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-zinc-500" />
+              <label className="font-medium text-white/90 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-white/60" />
                 Max Players
               </label>
-              <span className="font-mono text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 font-semibold">
+              <span className="font-mono text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 font-semibold text-xs shadow-inner">
                 {maxPlayers}
               </span>
             </div>
@@ -211,18 +211,18 @@ export const SettingsModal = ({ isOpen, onClose }) => {
               step="1"
               value={maxPlayers}
               onChange={(e) => setMaxPlayers(e.target.value)}
-              className="w-full accent-zinc-200 cursor-pointer h-1.5 bg-zinc-950 rounded appearance-none"
+              className="w-full accent-white cursor-pointer h-1.5 bg-black/35 rounded-lg appearance-none border border-white/15"
             />
           </div>
 
-          {/* 6. Whiteboard Pattern Selector (Author sets for everybody) */}
-          <div className="space-y-1.5 pt-1">
+          {/* 7. Whiteboard Pattern Selector (Author sets for everybody) */}
+          <div className="space-y-2 pt-1">
             <div className="flex items-center justify-between text-xs">
-              <label className="font-medium text-zinc-300 flex items-center gap-1.5">
-                <Grid className="w-3.5 h-3.5 text-zinc-500" />
+              <label className="font-medium text-white/90 flex items-center gap-1.5">
+                <Grid className="w-3.5 h-3.5 text-white/60" />
                 Whiteboard Paper Pattern
               </label>
-              <span className="font-mono text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 text-[11px] capitalize">
+              <span className="font-mono text-white bg-black/35 px-2.5 py-0.5 rounded-lg border border-white/20 text-[11px] capitalize">
                 {whiteboardPattern}
               </span>
             </div>
@@ -239,45 +239,45 @@ export const SettingsModal = ({ isOpen, onClose }) => {
                     playClick();
                     setWhiteboardPattern(id);
                   }}
-                  className={`p-2.5 rounded-xl border text-xs flex flex-col items-center gap-1 transition cursor-pointer ${
+                  className={`p-2.5 rounded-xl border text-xs flex flex-col items-center gap-1 transition cursor-pointer backdrop-blur ${
                     whiteboardPattern === id
-                      ? 'bg-zinc-100 text-zinc-900 border-white font-semibold shadow-sm'
-                      : 'bg-zinc-950 hover:bg-zinc-800/80 text-zinc-400 hover:text-zinc-200 border-zinc-800'
+                      ? 'bg-white text-zinc-950 border-white font-bold shadow-lg scale-[1.02]'
+                      : 'bg-black/30 hover:bg-black/45 text-white/70 hover:text-white border-white/15'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="font-medium text-xs">{label}</span>
-                  <span className={`text-[10px] ${whiteboardPattern === id ? 'text-zinc-600' : 'text-zinc-500'}`}>
+                  <span className={`text-[10px] ${whiteboardPattern === id ? 'text-zinc-700' : 'text-white/50'}`}>
                     {desc}
                   </span>
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-zinc-500">
+            <p className="text-[10px] text-white/50">
               Synced to all players in the room during drawing & voting.
             </p>
           </div>
         </div>
 
         {/* Footer Actions (Pinned at bottom) */}
-        <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-zinc-800 flex items-center justify-between bg-zinc-900/95 backdrop-blur">
+        <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-white/15 flex items-center justify-between bg-black/30 backdrop-blur">
           <button
             onClick={resetDefaults}
-            className="text-xs text-zinc-500 hover:text-zinc-300 cursor-pointer"
+            className="text-xs text-white/70 hover:text-white cursor-pointer transition underline-offset-4 hover:underline"
           >
             Reset Defaults
           </button>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 text-xs transition cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 text-xs transition cursor-pointer border border-transparent hover:border-white/15"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-1.5 rounded-lg bg-zinc-100 hover:bg-white text-zinc-900 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-4 py-1.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-lg disabled:opacity-50"
             >
               <Check className="w-3.5 h-3.5" />
               {saving ? 'Saving...' : 'Save Settings'}

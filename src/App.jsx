@@ -9,9 +9,18 @@ import { Preloader } from './components/common/Preloader';
 
 const MainContent = () => {
   const { roomState } = useGameSocket();
+  const isLobby = !roomState || roomState.phase === 'LOBBY';
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col relative overflow-x-hidden selection:bg-zinc-700 selection:text-white">
+      {/* Lobby Background */}
+      {isLobby && (
+        <div
+          className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700"
+          style={{ backgroundImage: "url('/background.webp')" }}
+        />
+      )}
+
       {/* Persistent Minimalist Header */}
       <Header />
 
@@ -25,13 +34,6 @@ const MainContent = () => {
           <GameView />
         )}
       </main>
-
-      {/* Minimal Footer - only shown in lobby/landing, hidden during active game */}
-      {(!roomState || roomState.phase === 'LOBBY') && (
-        <footer className="w-full py-4 text-center text-xs text-zinc-500 font-mono border-t border-zinc-900">
-          <p>From Luxvore Studio</p>
-        </footer>
-      )}
     </div>
   );
 };
