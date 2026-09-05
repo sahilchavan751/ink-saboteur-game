@@ -122,10 +122,10 @@ export const LobbyView = () => {
         <div className="flex flex-col items-center justify-center text-center space-y-8 animate-fadeIn select-none my-auto">
           {/* Heroic Floating Game Title */}
           <div className="space-y-2">
-            <h1 className="text-6xl sm:text-8xl font-black tracking-tight text-white drop-shadow-[0_14px_28px_rgba(0,0,0,0.6)] font-sans">
+            <h1 className="text-6xl sm:text-8xl font-black tracking-tight text-white font-sans">
               Ink<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-emerald-300">Spy</span>
             </h1>
-            <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] tracking-wide">
+            <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow-sm tracking-wide">
               Draw subtly. Blend in. Unmask the secret Saboteur.
             </p>
           </div>
