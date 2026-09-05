@@ -5,6 +5,7 @@ import { Header } from './components/common/Header';
 import { LobbyView } from './components/lobby/LobbyView';
 import { RoomLobby } from './components/lobby/RoomLobby';
 import { GameView } from './components/game/GameView';
+import { Preloader } from './components/common/Preloader';
 
 const MainContent = () => {
   const { roomState } = useGameSocket();
@@ -39,6 +40,7 @@ export default function App() {
   return (
     <SocketProvider>
       <ProximityProvider>
+        <Preloader />
         <MainContent />
       </ProximityProvider>
     </SocketProvider>

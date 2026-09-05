@@ -53,3 +53,31 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* Minimal Shimmer Effect */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    110deg,
+    #52525b 20%,
+    #a1a1aa 38%,
+    #ffffff 50%,
+    #a1a1aa 62%,
+    #52525b 80%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2.4s ease-in-out infinite;
+  display: inline-block;
+}
+
