@@ -14,12 +14,20 @@ const MainContent = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col relative overflow-x-hidden selection:bg-zinc-700 selection:text-white">
       {/* Lobby Background */}
-      {isLobby && (
-        <div
-          className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700"
-          style={{ backgroundImage: "url('/background.webp')" }}
-        />
-      )}
+      <div
+        className={`fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
+          isLobby ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{ backgroundImage: "url('/background.webp')" }}
+      />
+
+      {/* Game Screen Background */}
+      <div
+        className={`fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
+          !isLobby ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{ backgroundImage: "url('/background-game.webp')" }}
+      />
 
       {/* Persistent Minimalist Header */}
       <Header />

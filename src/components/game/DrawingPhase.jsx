@@ -101,18 +101,18 @@ export const DrawingPhase = () => {
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-col flex-1 h-full min-h-0 overflow-hidden space-y-2.5">
       {/* Top Unified HUD Toolbar - Perfectly Centered & Aligned, Never Prematurely Wraps */}
-      <div className="shrink-0 w-full bg-zinc-900 border border-zinc-800 p-2 sm:px-3 sm:py-2.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shadow-sm relative z-40">
+      <div className="shrink-0 w-full bg-black/40 backdrop-blur-2xl border border-white/15 p-2 sm:px-3 sm:py-2.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shadow-lg relative z-40">
         {/* Left: Secret Prompt, Role, Theme, Tie-Breaker */}
-        <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap shrink-0">
+        <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar shrink min-w-0">
           {/* Secret Prompt Pill */}
-          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs shrink-0">
-            <span className="font-mono text-zinc-500 uppercase text-[10px] sm:text-[11px]">Prompt:</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:py-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 text-xs shrink-0 shadow-sm">
+            <span className="font-mono text-white/50 uppercase text-[10px] sm:text-[11px]">Prompt:</span>
             {concealed ? (
-              <span className="font-mono text-zinc-600 font-medium select-none tracking-widest text-[11px]">
+              <span className="font-mono text-white/40 font-medium select-none tracking-widest text-[11px]">
                 ••••••••••
               </span>
             ) : (
-              <span className="font-semibold text-zinc-100 max-w-[110px] sm:max-w-[170px] truncate text-xs">
+              <span className="font-semibold text-white max-w-[110px] sm:max-w-[170px] truncate text-xs drop-shadow-sm">
                 "{myRole?.prompt || 'Loading...'}"
               </span>
             )}
@@ -122,24 +122,24 @@ export const DrawingPhase = () => {
                 playClick();
                 setConcealed(!concealed);
               }}
-              className="ml-0.5 text-zinc-500 hover:text-zinc-200 transition cursor-pointer"
+              className="ml-0.5 text-white/60 hover:text-white transition cursor-pointer"
               title={concealed ? 'Reveal prompt & role' : 'Conceal prompt & role'}
             >
-              {concealed ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-zinc-400" />}
+              {concealed ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-white/60" />}
             </button>
           </div>
 
           {/* Role Indicator Pill (Citizen / Saboteur) */}
-          <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs font-mono shrink-0">
-            <span className="text-zinc-500 uppercase text-[10px] sm:text-[11px]">Role:</span>
+          <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 text-xs font-mono shrink-0 shadow-sm">
+            <span className="text-white/50 uppercase text-[10px] sm:text-[11px]">Role:</span>
             {concealed ? (
-              <span className="text-zinc-600 font-medium select-none tracking-widest text-[10px] sm:text-[11px]">•••••</span>
+              <span className="text-white/40 font-medium select-none tracking-widest text-[10px] sm:text-[11px]">•••••</span>
             ) : (
               <span
                 className={`font-semibold px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] ${
                   myRole?.isSaboteur
-                    ? 'bg-rose-950/70 border border-rose-800 text-rose-300'
-                    : 'bg-indigo-950/70 border border-indigo-800 text-indigo-300'
+                    ? 'bg-rose-500/25 border border-rose-400/40 text-rose-200'
+                    : 'bg-indigo-500/25 border border-indigo-400/40 text-indigo-200'
                 }`}
               >
                 {myRole?.isSaboteur ? 'Saboteur' : 'Citizen'}
@@ -147,39 +147,41 @@ export const DrawingPhase = () => {
             )}
           </div>
 
-          {/* Category Pill */}
-          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 shrink-0">
-            <span className="text-[10px] sm:text-[11px] text-zinc-500 font-mono uppercase">Theme:</span>
-            <span className="text-zinc-200 font-medium max-w-[110px] truncate">{roomState.category}</span>
-          </div>
+          {/* Category Pill - Hidden when Tie-Breaker is active to save toolbar space */}
+          {!roomState.isTieBreaker && (
+            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 text-xs text-white/80 shrink-0 shadow-sm">
+              <span className="text-[10px] sm:text-[11px] text-white/50 font-mono uppercase">Theme:</span>
+              <span className="text-white font-medium max-w-[110px] truncate">{roomState.category}</span>
+            </div>
+          )}
 
           {/* Sleek Tie-Breaker Draw Badge */}
           {roomState.isTieBreaker && (
-            <div className="flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/60 text-amber-300 text-[10px] sm:text-[11px] font-mono font-semibold shrink-0 animate-pulse">
+            <div className="flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[10px] sm:text-[11px] font-mono font-semibold shrink-0 animate-pulse shadow-sm">
               <span>⚡ Tie-Breaker</span>
             </div>
           )}
         </div>
 
         {/* Right: Controls (Turn Status, Battery, Brush dropdown, Color dropdown, Voice, Done, Mobile Chat) */}
-        <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-800/60 relative">
+        <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-white/15 relative">
           {/* Pass / Chance Indicator */}
-          <div className="hidden lg:flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 font-mono shrink-0">
-            <RotateCcw className="w-3 h-3 text-zinc-400" />
+          <div className="hidden lg:flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 text-xs text-white/80 font-mono shrink-0 shadow-sm">
+            <RotateCcw className="w-3 h-3 text-white/60" />
             <span className="text-[10px] sm:text-[11px]">Chance {roomState.currentChance || 1}/{roomState.drawChances || 2}</span>
           </div>
 
           {/* Normal Turn Indicator Pill (NO EMOJIS) */}
           <div
-            className={`flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl text-xs border transition shrink-0 ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl text-xs border transition shrink-0 shadow-sm ${
               isMyTurn
-                ? 'bg-emerald-950/50 border-emerald-500/80 text-emerald-300 font-semibold shadow-sm'
-                : 'bg-zinc-950 border-zinc-800 text-zinc-300'
+                ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-200 font-semibold backdrop-blur'
+                : 'bg-black/30 backdrop-blur border-white/15 text-white/80'
             }`}
           >
             <span
               className={`w-2 h-2 rounded-full shrink-0 ${
-                isMyTurn ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'
+                isMyTurn ? 'bg-emerald-400 animate-pulse' : 'bg-white/40'
               }`}
             />
             <span className="whitespace-nowrap font-medium text-[11px] sm:text-xs">
@@ -205,27 +207,27 @@ export const DrawingPhase = () => {
                 playClick();
                 setBrushMenuOpen(!brushMenuOpen);
               }}
-              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer shadow-sm ${
                 brushMenuOpen
-                  ? 'bg-zinc-800 text-white border-zinc-600'
-                  : 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:border-zinc-700 hover:text-white'
+                  ? 'bg-white/20 text-white border-white/30 backdrop-blur'
+                  : 'bg-black/30 backdrop-blur text-white/80 border-white/15 hover:border-white/30 hover:text-white'
               }`}
               title="Select brush thickness"
             >
-              <PenTool className="w-3.5 h-3.5 text-zinc-300" />
+              <PenTool className="w-3.5 h-3.5 text-white/80" />
               <span
-                className="rounded-full bg-zinc-100 inline-block shrink-0"
+                className="rounded-full bg-white inline-block shrink-0"
                 style={{
                   width: brushSize <= 3 ? 4 : brushSize <= 6 ? 7 : 10,
                   height: brushSize <= 3 ? 4 : brushSize <= 6 ? 7 : 10
                 }}
               />
-              <ChevronDown className="w-3 h-3 text-zinc-500" />
+              <ChevronDown className="w-3 h-3 text-white/50" />
             </button>
 
             {/* Brush Popover Dropdown */}
             {brushMenuOpen && (
-              <div className="absolute top-full mt-2 right-0 z-50 w-36 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 rounded-xl p-1.5 shadow-2xl animate-fadeIn space-y-1">
+              <div className="absolute top-full mt-2 right-0 z-50 w-36 bg-black/80 backdrop-blur-2xl border border-white/20 rounded-2xl p-1.5 shadow-2xl animate-fadeIn space-y-1">
                 {[
                   { size: 3, label: 'Fine (3px)' },
                   { size: 6, label: 'Medium (6px)' },
@@ -239,10 +241,10 @@ export const DrawingPhase = () => {
                       setBrushSize(size);
                       setBrushMenuOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer ${
                       brushSize === size
-                        ? 'bg-zinc-800 text-white font-semibold'
-                        : 'text-zinc-300 hover:bg-zinc-800/60 hover:text-white'
+                        ? 'bg-white/20 text-white font-semibold border border-white/25'
+                        : 'text-white/70 hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -270,25 +272,25 @@ export const DrawingPhase = () => {
                 playClick();
                 setColorMenuOpen(!colorMenuOpen);
               }}
-              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer shadow-sm ${
                 colorMenuOpen
-                  ? 'bg-zinc-800 text-white border-zinc-600'
-                  : 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:border-zinc-700 hover:text-white'
+                  ? 'bg-white/20 text-white border-white/30 backdrop-blur'
+                  : 'bg-black/30 backdrop-blur text-white/80 border-white/15 hover:border-white/30 hover:text-white'
               }`}
               title="Select brush color"
             >
-              <Palette className="w-3.5 h-3.5 text-zinc-300" />
+              <Palette className="w-3.5 h-3.5 text-white/80" />
               <span
                 className="w-3.5 h-3.5 rounded-full inline-block shrink-0 border border-white/50 shadow-sm"
                 style={{ backgroundColor: activeBrushColor }}
               />
-              <ChevronDown className="w-3 h-3 text-zinc-500" />
+              <ChevronDown className="w-3 h-3 text-white/50" />
             </button>
 
             {/* Horizontal Color Dropdown Palette */}
             {colorMenuOpen && (
-              <div className="absolute top-full mt-2 right-0 z-50 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 rounded-2xl p-2.5 shadow-2xl animate-fadeIn">
-                <div className="text-[10px] font-mono uppercase text-zinc-400 font-semibold mb-1.5 px-0.5 flex items-center justify-between">
+              <div className="absolute top-full mt-2 right-0 z-50 bg-black/80 backdrop-blur-2xl border border-white/20 rounded-2xl p-2.5 shadow-2xl animate-fadeIn">
+                <div className="text-[10px] font-mono uppercase text-white/60 font-semibold mb-1.5 px-0.5 flex items-center justify-between">
                   <span>Ink Palette</span>
                   <span
                     className="w-2.5 h-2.5 rounded-full inline-block border border-white/60"
@@ -308,8 +310,8 @@ export const DrawingPhase = () => {
                       style={{ backgroundColor: hex }}
                       className={`w-6 h-6 rounded-full shrink-0 transition-transform hover:scale-125 cursor-pointer border ${
                         activeBrushColor === hex
-                          ? 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-zinc-900 border-white scale-110 shadow-md'
-                          : 'border-zinc-700/60 hover:border-white'
+                          ? 'ring-2 ring-white ring-offset-2 ring-offset-black/80 border-white scale-110 shadow-md'
+                          : 'border-white/30 hover:border-white'
                       }`}
                       title={name}
                     />
@@ -328,16 +330,16 @@ export const DrawingPhase = () => {
                   playClick();
                   proximity.toggleProximity();
                 }}
-                className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer shadow-sm ${
                   proximity.isProximityEnabled
-                    ? 'bg-emerald-950/60 border-emerald-600/80 text-emerald-300'
-                    : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                    ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-200 backdrop-blur'
+                    : 'bg-black/30 backdrop-blur border-white/15 text-white/70 hover:text-white hover:border-white/30'
                 }`}
                 title="Toggle proximity voice chat"
               >
                 <Radio
                   className={`w-3.5 h-3.5 ${
-                    proximity.isProximityEnabled ? 'animate-pulse text-emerald-400' : 'text-zinc-500'
+                    proximity.isProximityEnabled ? 'animate-pulse text-emerald-400' : 'text-white/50'
                   }`}
                 />
                 <span className="font-mono text-[10px] uppercase hidden sm:inline">
@@ -354,19 +356,19 @@ export const DrawingPhase = () => {
                       playClick();
                       proximity.toggleMute();
                     }}
-                    className={`p-1 sm:p-1.5 rounded-xl border text-xs transition cursor-pointer ${
+                    className={`p-1 sm:p-1.5 rounded-xl border text-xs transition cursor-pointer backdrop-blur shadow-sm ${
                       proximity.isMuted
-                        ? 'bg-rose-950/50 border-rose-800/80 text-rose-300'
+                        ? 'bg-rose-500/25 border-rose-400/40 text-rose-200'
                         : proximity.isSpeaking
-                        ? 'bg-emerald-950/80 border-emerald-500 text-white animate-pulse'
-                        : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-zinc-700'
+                        ? 'bg-emerald-500/35 border-emerald-400 text-white animate-pulse'
+                        : 'bg-black/30 border-white/15 text-white/80 hover:border-white/30'
                     }`}
                     title={proximity.isMuted ? 'Unmute microphone' : 'Mute microphone'}
                   >
                     {proximity.isMuted ? (
-                      <MicOff className="w-3.5 h-3.5 text-rose-400" />
+                      <MicOff className="w-3.5 h-3.5 text-rose-300" />
                     ) : (
-                      <Mic className="w-3.5 h-3.5 text-emerald-400" />
+                      <Mic className="w-3.5 h-3.5 text-emerald-300" />
                     )}
                   </button>
 
@@ -374,7 +376,7 @@ export const DrawingPhase = () => {
                   <button
                     type="button"
                     onClick={() => setWhisperOpen(!whisperOpen)}
-                    className="p-1 sm:p-1.5 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                    className="p-1 sm:p-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 hover:border-white/30 text-white/70 hover:text-white transition cursor-pointer shadow-sm"
                     title="Send cursor whisper speech bubble"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
@@ -382,7 +384,7 @@ export const DrawingPhase = () => {
 
                   {/* Whisper Input Popover */}
                   {whisperOpen && (
-                    <div className="absolute top-full mt-1.5 right-0 z-50 w-64 bg-zinc-900 border border-zinc-700 rounded-xl p-2 shadow-elevated animate-fadeIn">
+                    <div className="absolute top-full mt-1.5 right-0 z-50 w-64 bg-black/80 backdrop-blur-2xl border border-white/20 rounded-2xl p-2 shadow-2xl animate-fadeIn">
                       <form onSubmit={handleSendWhisper} className="flex items-center gap-1.5">
                         <input
                           type="text"
@@ -391,12 +393,12 @@ export const DrawingPhase = () => {
                           placeholder="Whisper nearby (shows on canvas)..."
                           maxLength={65}
                           autoFocus
-                          className="flex-1 bg-zinc-950 border border-zinc-800 focus:border-zinc-600 px-2.5 py-1 rounded-lg text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none"
+                          className="flex-1 bg-black/40 border border-white/15 focus:border-white/35 px-2.5 py-1 rounded-xl text-xs text-white placeholder:text-white/40 focus:outline-none"
                         />
                         <button
                           type="submit"
                           disabled={!whisperText.trim()}
-                          className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-200 border border-zinc-700 transition cursor-pointer"
+                          className="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 disabled:opacity-30 text-white border border-white/20 transition cursor-pointer"
                         >
                           <Send className="w-3 h-3" />
                         </button>
@@ -416,7 +418,7 @@ export const DrawingPhase = () => {
                 playClick();
                 passTurn();
               }}
-              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold shadow transition cursor-pointer flex items-center gap-1 shrink-0"
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 text-xs font-bold shadow transition cursor-pointer flex items-center gap-1 shrink-0"
               title="Finish drawing early"
             >
               <span>Done</span>
@@ -431,7 +433,7 @@ export const DrawingPhase = () => {
               playClick();
               setMobileChatOpen(true);
             }}
-            className="lg:hidden p-1 sm:p-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition cursor-pointer shrink-0"
+            className="lg:hidden p-1 sm:p-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 text-white/70 hover:text-white hover:border-white/30 transition cursor-pointer shrink-0 shadow-sm"
             title="Open live chat"
           >
             <MessageSquare className="w-3.5 h-3.5" />
@@ -440,7 +442,7 @@ export const DrawingPhase = () => {
       </div>
 
       {/* Mobile Queue Horizontal Strip (Visible on mobile screens) */}
-      <div className="shrink-0 lg:hidden bg-zinc-900 border border-zinc-800 px-3 py-2 rounded-xl flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <div className="shrink-0 lg:hidden bg-black/30 backdrop-blur-2xl border border-white/20 px-3 py-2 rounded-2xl flex items-center gap-2 overflow-x-auto no-scrollbar shadow-sm">
         <span className="text-[10px] font-mono uppercase text-zinc-500 shrink-0">Queue:</span>
         {(roomState.turnOrder || []).map((pid, idx) => {
           const player = roomState.players.find((p) => p.id === pid);
@@ -496,12 +498,12 @@ export const DrawingPhase = () => {
         {/* Desktop Right Rail: Stacked Drawing Queue & Live Chat */}
         <div className="hidden lg:flex flex-col gap-3 h-full min-h-0">
           {/* Top: Drawing Queue Panel with Inner Scroll */}
-          <div className="flex-1 max-h-[46%] min-h-[160px] flex flex-col bg-zinc-900 p-3 rounded-2xl border border-zinc-800 shadow-sm">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-800 shrink-0">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <div className="flex-1 max-h-[46%] min-h-[160px] flex flex-col bg-black/40 backdrop-blur-2xl p-3 rounded-2xl border border-white/15 shadow-lg">
+            <div className="flex items-center justify-between pb-2 border-b border-white/15 shrink-0">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-white/90">
                 Drawing Queue
               </h3>
-              <span className="text-[11px] font-mono text-zinc-400 font-medium bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">
+              <span className="text-[11px] font-mono text-white/80 font-medium bg-black/25 px-2 py-0.5 rounded-lg border border-white/15 backdrop-blur">
                 Pass {roomState.currentChance || 1} / {roomState.drawChances || 2}
               </span>
             </div>
@@ -520,30 +522,30 @@ export const DrawingPhase = () => {
                 return (
                   <div
                     key={pid}
-                    className={`flex items-center justify-between p-2 rounded-xl border text-xs transition ${
+                    className={`flex items-center justify-between p-2 rounded-xl border text-xs transition backdrop-blur ${
                       isCurrent
-                        ? 'bg-zinc-800 border-zinc-600 shadow-sm'
+                        ? 'bg-white/15 border-white/35 shadow-sm text-white'
                         : hasCompletedInLap
-                        ? 'bg-zinc-950/40 border-zinc-850 opacity-60'
-                        : 'bg-zinc-950/70 border-zinc-800/80'
+                        ? 'bg-black/15 border-white/10 opacity-60 text-white/60'
+                        : 'bg-black/25 border-white/15 text-white/90 hover:border-white/25'
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] text-zinc-500 w-3 font-semibold">
+                      <span className="font-mono text-[10px] text-white/50 w-3 font-semibold">
                         {idx + 1}
                       </span>
                       <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center bg-zinc-900 border overflow-hidden shrink-0"
+                        className="w-6 h-6 rounded-lg flex items-center justify-center bg-black/30 border overflow-hidden shrink-0 shadow-inner"
                         style={{ borderColor: player.color }}
                       >
                         <PlayerAvatar avatar={player.avatar} name={player.name} />
                       </div>
                       <div>
-                        <div className="flex items-center gap-1 font-medium text-zinc-200">
-                          <span className="truncate max-w-[80px] text-[11px]">{player.name}</span>
-                          {isMe && <span className="text-[9px] text-zinc-500 font-mono">(You)</span>}
+                        <div className="flex items-center gap-1 font-medium text-white">
+                          <span className="truncate max-w-[80px] text-[11px] drop-shadow-sm">{player.name}</span>
+                          {isMe && <span className="text-[9px] text-white/60 font-mono">(You)</span>}
                         </div>
-                        <div className="flex items-center gap-1 text-[9px] text-zinc-500 font-mono">
+                        <div className="flex items-center gap-1 text-[9px] text-white/60 font-mono">
                           <span
                             className="w-1.5 h-1.5 rounded-full inline-block"
                             style={{ backgroundColor: player.color }}
@@ -555,17 +557,17 @@ export const DrawingPhase = () => {
 
                     <div>
                       {isCurrent ? (
-                        <span className="text-[9px] font-mono text-emerald-400 font-semibold px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800 flex items-center gap-1">
+                        <span className="text-[9px] font-mono text-emerald-300 font-semibold px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/40 flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                           Drawing
                         </span>
                       ) : hasCompletedInLap ? (
-                        <span className="text-[9px] font-mono text-zinc-500 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-zinc-500" />
+                        <span className="text-[9px] font-mono text-white/50 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-white/50" />
                           Done
                         </span>
                       ) : (
-                        <span className="text-[9px] font-mono text-zinc-500">
+                        <span className="text-[9px] font-mono text-white/50">
                           Waiting
                         </span>
                       )}
@@ -585,34 +587,34 @@ export const DrawingPhase = () => {
 
       {/* DRAWING INTERMISSION BLURRED OVERLAY WITH COUNTDOWN & ARTIST NAMES */}
       {roomState.phase === 'DRAWING_INTERMISSION' && (
-        <div className="absolute inset-0 z-50 backdrop-blur-md bg-zinc-950/70 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="max-w-xl w-full bg-zinc-900 border border-zinc-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-950 border border-zinc-800 text-xs font-mono text-amber-400">
+        <div className="absolute inset-0 z-50 backdrop-blur-xl bg-black/60 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="max-w-xl w-full bg-black/40 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6 text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 border border-white/15 text-xs font-mono text-amber-300 backdrop-blur shadow-sm">
               <Sparkles className="w-3.5 h-3.5" />
               <span>All Artists Done Drawing</span>
             </div>
 
             <div className="space-y-1.5">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight drop-shadow-sm">
                 Review the Masterpiece
               </h2>
-              <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-white/80 max-w-md mx-auto drop-shadow-sm">
                 Take a moment to inspect all strokes on the whiteboard. Who drew inconsistent with the theme?
               </p>
             </div>
 
             {/* Countdown display */}
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-200">
-              <Clock className="w-5 h-5 text-amber-400 animate-pulse" />
-              <span className="text-xs text-zinc-400 font-mono">Voting begins in:</span>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-black/35 backdrop-blur border border-white/15 text-white shadow-sm">
+              <Clock className="w-5 h-5 text-amber-300 animate-pulse" />
+              <span className="text-xs text-white/60 font-mono">Voting begins in:</span>
               <span className="text-xl font-bold font-mono text-white">
                 {Math.max(0, timer?.timeRemaining ?? 5)}s
               </span>
             </div>
 
             {/* Grid of all players so names are already clearly visible! */}
-            <div className="space-y-2.5 text-left pt-3 border-t border-zinc-800">
-              <div className="flex items-center justify-between text-xs text-zinc-400 font-mono px-1">
+            <div className="space-y-2.5 text-left pt-3 border-t border-white/15">
+              <div className="flex items-center justify-between text-xs text-white/70 font-mono px-1">
                 <span>Artists in this match:</span>
                 <span>{roomState.players?.length || 0} Suspects</span>
               </div>
@@ -622,24 +624,24 @@ export const DrawingPhase = () => {
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center gap-2 p-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs"
+                      className="flex items-center gap-2 p-2 rounded-xl bg-black/25 backdrop-blur border border-white/15 text-xs text-white"
                     >
                       <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-zinc-900 border overflow-hidden shrink-0"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center bg-black/30 border overflow-hidden shrink-0 shadow-inner"
                         style={{ borderColor: p.color }}
                       >
                         <PlayerAvatar avatar={p.avatar} name={p.name} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-zinc-200 truncate flex items-center gap-1">
+                        <div className="font-semibold text-white truncate flex items-center gap-1">
                           <span>{p.name}</span>
                           {isSelf && (
-                            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-zinc-800 text-zinc-400">
+                            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-white/20 text-white font-medium border border-white/10">
                               You
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
+                        <div className="flex items-center gap-1 text-[10px] text-white/60 font-mono">
                           <span
                             className="w-1.5 h-1.5 rounded-full inline-block"
                             style={{ backgroundColor: p.color }}

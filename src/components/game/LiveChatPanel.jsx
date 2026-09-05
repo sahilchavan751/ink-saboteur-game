@@ -24,7 +24,7 @@ export const LiveChatPanel = ({ isMobileDrawer = false, onCloseMobile }) => {
   };
 
   return (
-    <div className={`flex flex-col bg-black/30 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.35)] h-full min-h-0 ${isMobileDrawer ? 'p-3' : 'p-3'}`}>
+    <div className={`flex flex-col bg-black/40 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-lg h-full min-h-0 ${isMobileDrawer ? 'p-3' : 'p-3'}`}>
       {/* Chat Header */}
       <div className="flex items-center justify-between pb-2 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-1.5">

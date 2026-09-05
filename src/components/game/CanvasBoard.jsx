@@ -360,7 +360,7 @@ export const CanvasBoard = ({
       {/* The Whiteboard Frame - Stretches to bottom */}
       <div
         ref={containerRef}
-        className="relative w-full flex-1 min-h-0 bg-white rounded-2xl border border-zinc-300 shadow-sm overflow-hidden canvas-wrapper touch-none select-none"
+        className="relative w-full flex-1 min-h-0 bg-white rounded-2xl border border-black/10 shadow-lg overflow-hidden canvas-wrapper touch-none select-none"
       >
         {/* Full Viewport Canvas - Never cut off during pan */}
         <canvas
@@ -461,20 +461,20 @@ export const CanvasBoard = ({
         </div>
 
         {/* Clean Controls Widget: Host Clear Board, Pan Toggle, and 1:1 Reset Indicator (Zoom buttons removed as requested) */}
-        <div className="absolute bottom-3 right-3 z-30 flex items-center gap-1.5 p-1.5 rounded-2xl bg-zinc-900/90 backdrop-blur-md border border-zinc-700/80 shadow-xl select-none">
+        <div className="absolute bottom-3 right-3 z-30 flex items-center gap-1.5 p-1.5 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/15 shadow-lg select-none">
           {/* Host-only Clear Board button */}
           {isHost && (
             <>
               <button
                 type="button"
                 onClick={handleWipeCanvas}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-950/70 hover:bg-rose-900 border border-rose-800 text-rose-200 text-xs font-medium transition cursor-pointer shadow-sm"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-500/25 hover:bg-rose-500/40 border border-rose-400/40 text-rose-200 text-xs font-medium transition cursor-pointer shadow-sm"
                 title="Host Action: Clear all strokes on canvas"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Clear Board</span>
               </button>
-              <div className="w-[1px] h-4 bg-zinc-700/80 mx-0.5" />
+              <div className="w-[1px] h-4 bg-white/20 mx-0.5" />
             </>
           )}
 
@@ -484,8 +484,8 @@ export const CanvasBoard = ({
             onClick={() => setIsPanMode(!isPanMode)}
             className={`p-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1 ${
               isPanMode
-                ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400'
-                : 'text-zinc-300 hover:text-white hover:bg-zinc-800'
+                ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-white/50'
+                : 'text-white/80 hover:text-white hover:bg-white/15'
             }`}
             title={isPanMode ? 'Pan Mode Active (Drag to move canvas)' : 'Toggle Pan Mode (Move canvas)'}
           >
@@ -493,23 +493,23 @@ export const CanvasBoard = ({
             <span className="hidden md:inline text-[11px]">{isPanMode ? 'Moving' : 'Pan'}</span>
           </button>
 
-          <div className="w-[1px] h-4 bg-zinc-700/80 mx-0.5" />
+          <div className="w-[1px] h-4 bg-white/20 mx-0.5" />
 
           {/* Zoom Level Indicator & 1:1 Reset View Button */}
           <button
             type="button"
             onClick={handleResetView}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold text-zinc-300 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold text-white/80 hover:text-white hover:bg-white/15 transition cursor-pointer"
             title="Reset View (100% Zoom & Center)"
           >
-            <RotateCcw className="w-3 h-3 text-zinc-400" />
+            <RotateCcw className="w-3 h-3 text-white/60" />
             <span>{Math.round(zoom * 100)}%</span>
           </button>
         </div>
 
         {/* Out of Ink Indicator on Whiteboard */}
         {isInteractive && inkRemaining <= 0 && (
-          <div className="absolute top-3 right-3 z-20 pointer-events-none bg-zinc-900 border border-zinc-700 text-zinc-100 font-mono text-[11px] font-semibold px-3 py-1.5 rounded-lg shadow flex items-center gap-1.5">
+          <div className="absolute top-3 right-3 z-20 pointer-events-none bg-black/60 backdrop-blur-md border border-white/20 text-white font-mono text-[11px] font-semibold px-3 py-1.5 rounded-xl shadow flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-rose-500" />
             <span>Ink Depleted</span>
           </div>
