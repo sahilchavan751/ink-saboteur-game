@@ -22,7 +22,7 @@ const MainContent = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col relative overflow-x-hidden selection:bg-zinc-700 selection:text-white">
+    <div className="h-screen max-h-screen bg-zinc-950 text-zinc-100 flex flex-col relative overflow-hidden selection:bg-zinc-700 selection:text-white">
       {/* Background Container with Subtle Zoom (Slow Ken Burns Breathing Effect) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Lobby Background */}

@@ -521,9 +521,9 @@ export const DrawingPhase = () => {
         </div>
 
         {/* Desktop Right Rail: Stacked Drawing Queue & Live Chat */}
-        <div className="hidden lg:flex flex-col gap-3 h-full min-h-0 overflow-hidden">
+        <div className="hidden lg:flex flex-col gap-3 overflow-hidden" style={{ height: '100%', minHeight: 0, maxHeight: '100%' }}>
           {/* Top: Drawing Queue Panel with Inner Scroll */}
-          <div className="flex-1 max-h-[46%] min-h-[140px] flex flex-col bg-black/40 backdrop-blur-2xl p-3 rounded-2xl border border-white/15 shadow-lg overflow-hidden">
+          <div className="shrink-0 max-h-[46%] min-h-[140px] flex flex-col bg-black/40 backdrop-blur-2xl p-3 rounded-2xl border border-white/15 shadow-lg overflow-hidden">
             <div className="flex items-center justify-between pb-2 border-b border-white/15 shrink-0">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-white/90">
                 Drawing Queue
@@ -603,8 +603,8 @@ export const DrawingPhase = () => {
             </div>
           </div>
 
-          {/* Bottom: Live Chat Panel with Inner Scroll */}
-          <div className="flex-1 min-h-0 max-h-[54%] flex flex-col overflow-hidden">
+          {/* Bottom: Live Chat Panel — flex-1 with strict min/max to never overflow */}
+          <div className="flex-1 min-h-0 overflow-hidden">
             <LiveChatPanel />
           </div>
         </div>

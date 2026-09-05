@@ -6,11 +6,18 @@
   * {
     box-sizing: border-box;
   }
+
+  html, body, #root {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
   
   body {
     background-color: #09090b;
     color: #f4f4f5;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    margin: 0;
   }
 
   /* Minimalist Scrollbar */
