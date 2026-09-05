@@ -177,10 +177,11 @@ export const LobbyView = () => {
       )}
 
       {/* VIEW 2: HOST VS JOIN CHOICE SELECTION */}
+      {/* VIEW 2: HOST VS JOIN CHOICE SELECTION - ARCADE 3D GAME MODE SELECT */}
       {viewMode === 'choice' && (
-        <div className="w-full max-w-[460px] bg-black/35 backdrop-blur-2xl rounded-3xl p-5 sm:p-7 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] space-y-5 animate-fadeIn">
-          {/* Header with Back Navigation */}
-          <div className="flex items-center justify-between pb-2 border-b border-white/10">
+        <div className="w-full max-w-2xl my-auto space-y-6 animate-fadeIn select-none px-4">
+          {/* Top Bar with Floating Arcade Back Button */}
+          <div className="flex items-center justify-start">
             <button
               type="button"
               onClick={() => {
@@ -188,22 +189,26 @@ export const LobbyView = () => {
                 setError(null);
                 setViewMode('menu');
               }}
-              className="inline-flex items-center gap-1 text-xs text-white/70 hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-xl border border-white/20 hover:border-white/40 text-white text-xs font-bold tracking-wide shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer group"
             >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Main Menu</span>
+              <ChevronLeft className="w-4 h-4 text-amber-300 group-hover:-translate-x-0.5 transition-transform" />
+              <span>MAIN MENU</span>
             </button>
-            <span className="text-[11px] font-mono text-white/50 uppercase">Select Mode</span>
           </div>
 
-          <div className="text-center space-y-1">
-            <h2 className="text-xl font-bold text-white tracking-tight">Choose How to Play</h2>
-            <p className="text-xs text-white/60">Create a private room or enter an existing match</p>
+          {/* Section Header */}
+          <div className="text-center space-y-1.5">
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight drop-shadow font-sans">
+              Choose How to Play
+            </h2>
+            <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow-sm">
+              Start your own private drawing room or join an existing match
+            </p>
           </div>
 
-          {/* Two Big Options: Host vs Join */}
-          <div className="grid grid-cols-1 gap-3 pt-1">
-            {/* Host Room Option Card */}
+          {/* Two Big Heroic 3D Game Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 pt-1">
+            {/* Card 1: Host Room */}
             <button
               type="button"
               onClick={() => {
@@ -211,27 +216,28 @@ export const LobbyView = () => {
                 setError(null);
                 setViewMode('host');
               }}
-              className="group p-4 rounded-2xl bg-black/30 hover:bg-black/50 border border-white/15 hover:border-white/35 transition-all text-left flex items-start gap-3.5 cursor-pointer backdrop-blur shadow-sm active:scale-[0.99]"
+              className="group relative overflow-hidden rounded-3xl p-6 sm:p-7 bg-gradient-to-b from-black/55 via-zinc-950/70 to-black/80 backdrop-blur-2xl border-2 border-amber-400/40 hover:border-amber-300 shadow-[0_8px_0_#b45309,0_20px_40px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_0_#b45309,0_10px_24px_rgba(0,0,0,0.5)] hover:translate-y-[2px] active:translate-y-[6px] active:shadow-none transition-all duration-150 text-left flex flex-col justify-between cursor-pointer min-h-[220px]"
             >
-              <div className="p-3 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-300 shrink-0 group-hover:scale-105 transition-transform">
-                <Crown className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-white group-hover:text-amber-200 transition-colors">
-                    Host a Room
-                  </h3>
-                  <span className="text-[10px] font-mono text-amber-300/80 bg-amber-500/15 px-2 py-0.5 rounded-md border border-amber-400/25">
-                    Create
-                  </span>
-                </div>
-                <p className="text-xs text-white/65 mt-1 leading-snug">
-                  Create a new game lobby, customize match rules, choose canvas styles, and invite friends.
+              {/* Subtle radiant background glow */}
+              <div className="absolute -top-12 -right-12 w-36 h-36 bg-amber-400/15 rounded-full blur-2xl pointer-events-none group-hover:bg-amber-400/25 transition-all" />
+
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white group-hover:text-amber-200 transition-colors tracking-tight font-sans">
+                  Host a Room
+                </h3>
+                <p className="text-xs sm:text-sm text-white/75 mt-2 leading-relaxed">
+                  Create a custom room, set drawing rules, pick canvas styles & invite friends.
                 </p>
+              </div>
+
+              {/* Tactile 3D Action Pill */}
+              <div className="mt-8 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 group-hover:from-amber-300 group-hover:to-amber-400 text-zinc-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all">
+                <span>CREATE LOBBY</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
 
-            {/* Join Room Option Card */}
+            {/* Card 2: Join Room */}
             <button
               type="button"
               onClick={() => {
@@ -239,23 +245,24 @@ export const LobbyView = () => {
                 setError(null);
                 setViewMode('join');
               }}
-              className="group p-4 rounded-2xl bg-black/30 hover:bg-black/50 border border-white/15 hover:border-white/35 transition-all text-left flex items-start gap-3.5 cursor-pointer backdrop-blur shadow-sm active:scale-[0.99]"
+              className="group relative overflow-hidden rounded-3xl p-6 sm:p-7 bg-gradient-to-b from-black/55 via-zinc-950/70 to-black/80 backdrop-blur-2xl border-2 border-sky-400/40 hover:border-sky-300 shadow-[0_8px_0_#0369a1,0_20px_40px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_0_#0369a1,0_10px_24px_rgba(0,0,0,0.5)] hover:translate-y-[2px] active:translate-y-[6px] active:shadow-none transition-all duration-150 text-left flex flex-col justify-between cursor-pointer min-h-[220px]"
             >
-              <div className="p-3 rounded-xl bg-sky-500/20 border border-sky-400/30 text-sky-300 shrink-0 group-hover:scale-105 transition-transform">
-                <LogIn className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-white group-hover:text-sky-200 transition-colors">
-                    Join with Code
-                  </h3>
-                  <span className="text-[10px] font-mono text-sky-300/80 bg-sky-500/15 px-2 py-0.5 rounded-md border border-sky-400/25">
-                    Enter
-                  </span>
-                </div>
-                <p className="text-xs text-white/65 mt-1 leading-snug">
-                  Have a 4-letter room code from your friends? Jump straight into their room.
+              {/* Subtle radiant background glow */}
+              <div className="absolute -top-12 -right-12 w-36 h-36 bg-sky-400/15 rounded-full blur-2xl pointer-events-none group-hover:bg-sky-400/25 transition-all" />
+
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-white group-hover:text-sky-200 transition-colors tracking-tight font-sans">
+                  Join with Code
+                </h3>
+                <p className="text-xs sm:text-sm text-white/75 mt-2 leading-relaxed">
+                  Got a 4-letter room code from your friends? Jump straight into their match.
                 </p>
+              </div>
+
+              {/* Tactile 3D Action Pill */}
+              <div className="mt-8 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-sky-400 to-sky-500 group-hover:from-sky-300 group-hover:to-sky-400 text-zinc-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all">
+                <span>ENTER ROOM</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
           </div>
@@ -264,9 +271,9 @@ export const LobbyView = () => {
 
       {/* VIEW 3: HOST ROOM SCREEN OR JOIN ROOM SCREEN */}
       {(viewMode === 'host' || viewMode === 'join') && (
-        <div className="w-full max-w-[480px] bg-black/35 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] space-y-4 animate-fadeIn">
+        <div className="w-full max-w-[480px] bg-gradient-to-b from-black/60 via-zinc-950/75 to-black/85 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 border-2 border-white/20 shadow-[0_8px_0_#0f172a,0_24px_48px_rgba(0,0,0,0.5)] space-y-4 animate-fadeIn my-auto">
           {/* Top Bar with Back Navigation */}
-          <div className="flex items-center justify-between pb-2 border-b border-white/10">
+          <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
             <button
               type="button"
               onClick={() => {
@@ -274,15 +281,15 @@ export const LobbyView = () => {
                 setError(null);
                 setViewMode('choice');
               }}
-              className="inline-flex items-center gap-1 text-xs text-white/70 hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-xl border border-white/20 hover:border-white/40 text-white text-xs font-bold tracking-wide shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer group"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4 text-amber-300 group-hover:-translate-x-0.5 transition-transform" />
               <span>Back</span>
             </button>
 
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <h2 className="text-xs font-semibold text-white uppercase tracking-wider">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${viewMode === 'host' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]'}`} />
+              <h2 className="text-xs font-black text-white uppercase tracking-wider font-sans">
                 {viewMode === 'host' ? 'Host New Room' : 'Join Game Room'}
               </h2>
             </div>
@@ -429,14 +436,18 @@ export const LobbyView = () => {
               </div>
             </div>
 
-            {/* Submit Action Button */}
+            {/* Submit Action Button - 3D Tactile Game Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer bg-white hover:bg-zinc-100 text-zinc-950 shadow-xl disabled:opacity-50 active:scale-[0.99] mt-2"
+              className={`w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 disabled:opacity-50 disabled:cursor-not-allowed ${
+                viewMode === 'host'
+                  ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 hover:from-amber-300 hover:to-amber-400 text-zinc-950 shadow-[0_5px_0_#b45309,0_12px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_3px_0_#b45309,0_8px_16px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:translate-y-[5px] active:shadow-none'
+                  : 'bg-gradient-to-r from-sky-400 via-cyan-300 to-sky-400 hover:from-sky-300 hover:to-sky-400 text-zinc-950 shadow-[0_5px_0_#0369a1,0_12px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_3px_0_#0369a1,0_8px_16px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:translate-y-[5px] active:shadow-none'
+              }`}
             >
               <span>{loading ? 'Connecting...' : viewMode === 'host' ? 'Create Game Room' : 'Join Game Room'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           </form>
         </div>
