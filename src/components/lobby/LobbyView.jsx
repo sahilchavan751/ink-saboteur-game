@@ -174,7 +174,7 @@ export const LobbyView = () => {
             </div>
             <div className="flex items-center gap-2.5">
               <div
-                className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border-2 bg-zinc-950 flex items-center justify-center shadow-inner"
+                className="w-10 h-10 rounded-full overflow-hidden shrink-0 border-2 bg-zinc-950 flex items-center justify-center shadow-inner"
                 style={{ borderColor: selectedColor.hex }}
                 title="Active Avatar"
               >
