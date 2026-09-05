@@ -41,6 +41,7 @@ export const SocketProvider = ({ children }) => {
   const playerIdRef = useRef(getOrCreatePlayerId());
   const myPlayerId = playerIdRef.current;
   const isHostRef = useRef(false);
+  const roomCodeRef = useRef(null);
   const tickerRef = useRef(null);
 
   // Monitor database connection and maintain presence
@@ -51,15 +52,23 @@ export const SocketProvider = ({ children }) => {
       setConnected(isOnline);
       if (isOnline && roomCode && myPlayerId) {
         // Re-affirm player presence on reconnection
+        const roomRef = ref(db, `rooms/${roomCode}`);
         const myPlayerRef = ref(db, `rooms/${roomCode}/players/${myPlayerId}`);
         update(myPlayerRef, { lastSeen: Date.now() }).catch(() => {});
         onDisconnect(myPlayerRef).remove();
         const myCursorRef = ref(db, `rooms/${roomCode}/cursors/${myPlayerId}`);
         onDisconnect(myCursorRef).remove();
+
+        // If host is the only player in the room, arm room deletion on disconnect
+        if (isHostRef.current && (!roomState?.players || roomState.players.length <= 1)) {
+          onDisconnect(roomRef).remove();
+        } else {
+          onDisconnect(roomRef).cancel();
+        }
       }
     });
     return () => unsubscribe();
-  }, [roomCode, myPlayerId]);
+  }, [roomCode, myPlayerId, roomState?.players?.length]);
 
   // Periodic AFK presence heartbeat to keep connection and room active
   useEffect(() => {
@@ -942,11 +951,12 @@ export const SocketProvider = ({ children }) => {
     return { success: true };
   }, [roomCode]);
 
-  const leaveRoom = useCallback(async () => {
-    if (roomCode) {
+  const leaveRoom = useCallback(async (options = {}) => {
+    const codeToLeave = roomCodeRef.current || roomCode;
+    if (codeToLeave) {
       try {
-        const roomRef = ref(db, `rooms/${roomCode}`);
-        const playersRef = ref(db, `rooms/${roomCode}/players`);
+        const roomRef = ref(db, `rooms/${codeToLeave}`);
+        const playersRef = ref(db, `rooms/${codeToLeave}/players`);
         const snap = await get(playersRef);
 
         if (snap.exists()) {
@@ -956,8 +966,8 @@ export const SocketProvider = ({ children }) => {
           if (remainingKeys.length === 0) {
             await remove(roomRef);
           } else {
-            await remove(ref(db, `rooms/${roomCode}/players/${myPlayerId}`));
-            await remove(ref(db, `rooms/${roomCode}/cursors/${myPlayerId}`));
+            await remove(ref(db, `rooms/${codeToLeave}/players/${myPlayerId}`));
+            await remove(ref(db, `rooms/${codeToLeave}/cursors/${myPlayerId}`));
 
             if (isHostRef.current && remainingKeys.length > 0) {
               const nextHostId = remainingKeys[0];
@@ -976,6 +986,15 @@ export const SocketProvider = ({ children }) => {
       }
     }
 
+    if (!options?.fromHistory) {
+      try {
+        if (window.location.search.includes('room=')) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      } catch (e) {}
+    }
+
+    roomCodeRef.current = null;
     setRoomCode(null);
     setRoomState(null);
     setStrokes([]);
@@ -983,6 +1002,56 @@ export const SocketProvider = ({ children }) => {
     setChatMessages([]);
     if (tickerRef.current) clearInterval(tickerRef.current);
   }, [roomCode, myPlayerId]);
+
+  // Keep roomCodeRef in sync and manage browser history pushState
+  useEffect(() => {
+    roomCodeRef.current = roomCode;
+
+    if (roomCode) {
+      // Ensure browser history stack has the room state so browser back & Android back gesture trigger popstate
+      if (!window.history.state?.inRoom || window.history.state?.roomCode !== roomCode) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('room', roomCode);
+        window.history.pushState({ inRoom: true, roomCode }, '', currentUrl.toString());
+      }
+    }
+  }, [roomCode]);
+
+  // Handle browser Back button / mobile Android Back gesture
+  useEffect(() => {
+    const handlePopState = () => {
+      const activeCode = roomCodeRef.current;
+      if (activeCode) {
+        // User clicked browser Back or swiped back on mobile!
+        leaveRoom({ fromHistory: true });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [leaveRoom]);
+
+  // Handle page hide / beforeunload cleanup
+  useEffect(() => {
+    const handlePageUnload = () => {
+      const code = roomCodeRef.current;
+      if (code && myPlayerId) {
+        const myPlayerRef = ref(db, `rooms/${code}/players/${myPlayerId}`);
+        remove(myPlayerRef).catch(() => {});
+        const myCursorRef = ref(db, `rooms/${code}/cursors/${myPlayerId}`);
+        remove(myCursorRef).catch(() => {});
+      }
+    };
+
+    window.addEventListener('pagehide', handlePageUnload);
+    window.addEventListener('beforeunload', handlePageUnload);
+    return () => {
+      window.removeEventListener('pagehide', handlePageUnload);
+      window.removeEventListener('beforeunload', handlePageUnload);
+    };
+  }, [myPlayerId]);
 
   const sendChatMessage = useCallback(async (text) => {
     if (!roomCode || !text || !text.trim()) return;
