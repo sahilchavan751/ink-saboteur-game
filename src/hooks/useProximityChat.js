@@ -23,6 +23,8 @@ export const useProximityChat = ({
 }) => {
   const [isProximityEnabled, setIsProximityEnabled] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isVoiceAudioMuted, setIsVoiceAudioMuted] = useState(false);
+  const isVoiceAudioMutedRef = useRef(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speakingPeers, setSpeakingPeers] = useState({});
   const [micError, setMicError] = useState(null);
@@ -174,7 +176,8 @@ export const useProximityChat = ({
         document.body.appendChild(audioEl);
       }
       audioEl.srcObject = remoteStream;
-      audioEl.volume = 0.8;
+      audioEl.muted = isVoiceAudioMutedRef.current;
+      audioEl.volume = isVoiceAudioMutedRef.current ? 0 : 0.8;
       audioEl.play().catch((err) => console.warn('Audio element play err:', err));
 
       if (peersRef.current[peerId]) {
@@ -255,6 +258,27 @@ export const useProximityChat = ({
       setIsMuted(nextMuted);
     }
   }, [isMuted]);
+
+  // 6. Toggle Voice Chat Audio Mute (Deafen / Mute incoming peer audio)
+  const toggleVoiceAudioMute = useCallback(() => {
+    setIsVoiceAudioMuted((prev) => {
+      const next = !prev;
+      isVoiceAudioMutedRef.current = next;
+
+      // Apply to all active peer connections
+      Object.values(peersRef.current).forEach((peerObj) => {
+        if (peerObj.audioEl) {
+          peerObj.audioEl.muted = next;
+          peerObj.audioEl.volume = next ? 0 : 0.8;
+        }
+        if (peerObj.gainNode && audioContextRef.current) {
+          peerObj.gainNode.gain.setValueAtTime(next ? 0 : 0.75, audioContextRef.current.currentTime);
+        }
+      });
+
+      return next;
+    });
+  }, []);
 
   // 6. WebRTC Signaling Listener (Firebase)
   useEffect(() => {
@@ -353,10 +377,10 @@ export const useProximityChat = ({
         const { gainNode, pannerNode, analyser, audioEl } = peerObj;
         const peerCursor = remoteCursors[peerId];
 
-        let vol = 0.75;
+        let vol = isVoiceAudioMutedRef.current ? 0 : 0.75;
         let pan = 0;
 
-        if (peerCursor && isInGame) {
+        if (!isVoiceAudioMutedRef.current && peerCursor && isInGame) {
           // Distance on normalized canvas (0 to 1)
           const dx = peerCursor.x - myPos.x;
           const dy = peerCursor.y - myPos.y;
@@ -384,8 +408,9 @@ export const useProximityChat = ({
 
         // Also control fallback HTML5 audio element volume directly
         if (audioEl) {
+          audioEl.muted = isVoiceAudioMutedRef.current;
           audioEl.volume = Math.max(0, Math.min(1, vol));
-          if (audioEl.paused && vol > 0.05) {
+          if (!isVoiceAudioMutedRef.current && audioEl.paused && vol > 0.05) {
             audioEl.play().catch(() => {});
           }
         }
@@ -471,6 +496,8 @@ export const useProximityChat = ({
     toggleProximity,
     isMuted,
     toggleMute,
+    isVoiceAudioMuted,
+    toggleVoiceAudioMute,
     isSpeaking,
     speakingPeers,
     micError,

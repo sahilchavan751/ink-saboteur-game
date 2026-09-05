@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
-  Palette
+  Palette,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { useProximity } from '../../context/ProximityContext';
@@ -345,6 +347,29 @@ export const DrawingPhase = () => {
                 <span className="font-mono text-[10px] uppercase hidden sm:inline">
                   {proximity.isProximityEnabled ? 'Voice ON' : 'Voice'}
                 </span>
+              </button>
+
+              {/* Voice Chat Audio Sound Mute Button (Always next to Voice button) */}
+              <button
+                type="button"
+                onClick={() => {
+                  playClick();
+                  proximity.toggleVoiceAudioMute();
+                }}
+                className={`p-1 sm:p-1.5 rounded-xl border text-xs transition cursor-pointer backdrop-blur shadow-sm ${
+                  proximity.isVoiceAudioMuted
+                    ? 'bg-rose-500/25 border-rose-400/40 text-rose-200'
+                    : proximity.isProximityEnabled
+                    ? 'bg-black/30 border-white/15 text-white/80 hover:text-white hover:border-white/30'
+                    : 'bg-black/30 border-white/15 text-white/50 hover:text-white/80'
+                }`}
+                title={proximity.isVoiceAudioMuted ? 'Unmute voice chat audio' : 'Mute voice chat audio'}
+              >
+                {proximity.isVoiceAudioMuted ? (
+                  <VolumeX className="w-3.5 h-3.5 text-rose-300" />
+                ) : (
+                  <Volume2 className="w-3.5 h-3.5 text-white/80" />
+                )}
               </button>
 
               {proximity.isProximityEnabled && (

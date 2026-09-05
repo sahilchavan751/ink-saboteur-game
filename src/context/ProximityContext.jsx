@@ -43,6 +43,8 @@ export const useProximity = () => {
       toggleProximity: () => {},
       isMuted: false,
       toggleMute: () => {},
+      isVoiceAudioMuted: false,
+      toggleVoiceAudioMute: () => {},
       isSpeaking: false,
       speakingPeers: {},
       micError: null,

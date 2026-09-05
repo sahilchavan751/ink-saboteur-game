@@ -17,9 +17,114 @@ const getAudioContext = () => {
   return audioCtx;
 };
 
+const MUSIC_TRACKS = [
+  '/music/ink-score-1.mp3',
+  '/music/ink-score-2.mp3'
+];
+
+let bgMusicAudio = null;
+let currentTrackIndex = Math.floor(Math.random() * MUSIC_TRACKS.length);
+let muteListeners = new Set();
+
+const notifyMuteListeners = (muted) => {
+  muteListeners.forEach((fn) => {
+    try {
+      fn(muted);
+    } catch (e) {}
+  });
+};
+
+const MUSIC_VOLUME = 0.15; // Gentle, unobtrusive background music level
+
+export const subscribeMuteChange = (callback) => {
+  muteListeners.add(callback);
+  return () => muteListeners.delete(callback);
+};
+
+export const setMusicVolume = (vol) => {
+  const safeVol = Math.max(0, Math.min(1, vol));
+  if (bgMusicAudio && !isMuted) {
+    bgMusicAudio.volume = safeVol;
+  }
+};
+
+export const startBackgroundMusic = () => {
+  if (typeof window === 'undefined') return;
+
+  if (!bgMusicAudio) {
+    bgMusicAudio = new Audio();
+    bgMusicAudio.preload = 'auto';
+    bgMusicAudio.volume = MUSIC_VOLUME;
+
+    // When current song ends, alternate to the other song
+    bgMusicAudio.addEventListener('ended', () => {
+      currentTrackIndex = (currentTrackIndex + 1) % MUSIC_TRACKS.length;
+      bgMusicAudio.src = MUSIC_TRACKS[currentTrackIndex];
+      bgMusicAudio.load();
+      if (!isMuted) {
+        bgMusicAudio.play().catch(() => {});
+      }
+    });
+
+    bgMusicAudio.src = MUSIC_TRACKS[currentTrackIndex];
+    bgMusicAudio.load();
+  } else if (!isMuted) {
+    bgMusicAudio.volume = MUSIC_VOLUME;
+  }
+
+  if (isMuted) {
+    bgMusicAudio.pause();
+    return;
+  }
+
+  bgMusicAudio.volume = MUSIC_VOLUME;
+  const playPromise = bgMusicAudio.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(() => {
+      // Browser autoplay policy blocked - start on first user interaction
+      const resumeOnGesture = () => {
+        if (!isMuted && bgMusicAudio) {
+          bgMusicAudio.volume = MUSIC_VOLUME;
+          bgMusicAudio.play().catch(() => {});
+        }
+        window.removeEventListener('pointerdown', resumeOnGesture);
+        window.removeEventListener('click', resumeOnGesture);
+        window.removeEventListener('keydown', resumeOnGesture);
+      };
+      window.addEventListener('pointerdown', resumeOnGesture, { once: true });
+      window.addEventListener('click', resumeOnGesture, { once: true });
+      window.addEventListener('keydown', resumeOnGesture, { once: true });
+    });
+  }
+};
+
 export const toggleMute = () => {
   isMuted = !isMuted;
   localStorage.setItem('ink_saboteur_muted', isMuted ? 'true' : 'false');
+
+  if (bgMusicAudio) {
+    if (isMuted) {
+      bgMusicAudio.pause();
+    } else {
+      bgMusicAudio.volume = MUSIC_VOLUME;
+      bgMusicAudio.play().catch(() => {
+        const onUserAction = () => {
+          if (!isMuted && bgMusicAudio) {
+            bgMusicAudio.volume = MUSIC_VOLUME;
+            bgMusicAudio.play().catch(() => {});
+          }
+          window.removeEventListener('pointerdown', onUserAction);
+          window.removeEventListener('click', onUserAction);
+        };
+        window.addEventListener('pointerdown', onUserAction, { once: true });
+        window.addEventListener('click', onUserAction, { once: true });
+      });
+    }
+  } else if (!isMuted) {
+    startBackgroundMusic();
+  }
+
+  notifyMuteListeners(isMuted);
   return isMuted;
 };
 

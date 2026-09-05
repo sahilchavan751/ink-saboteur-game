@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SocketProvider, useGameSocket } from './context/SocketContext';
 import { ProximityProvider } from './context/ProximityContext';
 import { Header } from './components/common/Header';
@@ -6,10 +6,15 @@ import { LobbyView } from './components/lobby/LobbyView';
 import { RoomLobby } from './components/lobby/RoomLobby';
 import { GameView } from './components/game/GameView';
 import { Preloader } from './components/common/Preloader';
+import { startBackgroundMusic } from './utils/sound';
 
 const MainContent = () => {
   const { roomState } = useGameSocket();
   const isLobby = !roomState || roomState.phase === 'LOBBY';
+
+  useEffect(() => {
+    startBackgroundMusic();
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col relative overflow-x-hidden selection:bg-zinc-700 selection:text-white">

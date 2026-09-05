@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Volume2, VolumeX, Copy, Check, LogOut, PenTool } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
-import { toggleMute, getIsMuted, playClick } from '../../utils/sound';
+import { toggleMute, getIsMuted, subscribeMuteChange, playClick } from '../../utils/sound';
 
 export const Header = () => {
   const { roomState, leaveRoom } = useGameSocket();
   const [muted, setMuted] = useState(getIsMuted());
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    return subscribeMuteChange((newMuted) => setMuted(newMuted));
+  }, []);
 
   const handleToggleSound = () => {
     const isNowMuted = toggleMute();
