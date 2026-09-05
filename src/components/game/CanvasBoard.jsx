@@ -356,11 +356,11 @@ export const CanvasBoard = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col flex-1 min-h-0">
+    <div className="w-full h-full flex flex-col flex-1 min-h-0 overflow-hidden">
       {/* The Whiteboard Frame - Stretches to bottom */}
       <div
         ref={containerRef}
-        className="relative w-full h-full flex-1 min-h-[360px] bg-white rounded-2xl border border-zinc-300 shadow-sm overflow-hidden canvas-wrapper touch-none select-none"
+        className="relative w-full flex-1 min-h-0 bg-white rounded-2xl border border-zinc-300 shadow-sm overflow-hidden canvas-wrapper touch-none select-none"
       >
         {/* Full Viewport Canvas - Never cut off during pan */}
         <canvas
@@ -369,7 +369,7 @@ export const CanvasBoard = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
-          className={`w-full h-full block ${
+          className={`absolute inset-0 w-full h-full block ${
             isPanMode || (!isInteractive && !isDrawingRef.current)
               ? 'cursor-grab active:cursor-grabbing'
               : isInteractive && inkRemaining > 0

@@ -99,7 +99,7 @@ export const DrawingPhase = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-col flex-1 h-full min-h-0 space-y-2.5">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-5 py-2 flex flex-col flex-1 h-full min-h-0 overflow-hidden space-y-2.5">
       {/* Top Unified HUD Toolbar - Perfectly Centered & Aligned, Never Prematurely Wraps */}
       <div className="shrink-0 w-full bg-zinc-900 border border-zinc-800 p-2 sm:px-3 sm:py-2.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shadow-sm relative z-40">
         {/* Left: Secret Prompt, Role, Theme, Tie-Breaker */}
