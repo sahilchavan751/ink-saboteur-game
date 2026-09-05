@@ -5,5 +5,17 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-firebase': ['firebase/app', 'firebase/database'],
+          'vendor-ui': ['lucide-react', 'canvas-confetti']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600
   }
 });

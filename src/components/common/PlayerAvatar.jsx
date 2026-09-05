@@ -10,7 +10,8 @@ export const PlayerAvatar = ({ avatar, name = 'Player', className = '' }) => {
         src={src}
         alt={name}
         className={`w-full h-full object-cover select-none pointer-events-none rounded-[inherit] ${className}`}
-        loading="lazy"
+        loading="eager"
+        decoding="async"
         onError={(e) => {
           e.currentTarget.style.display = 'none';
         }}

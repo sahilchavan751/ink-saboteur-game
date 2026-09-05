@@ -1,12 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { SocketProvider, useGameSocket } from './context/SocketContext';
 import { ProximityProvider } from './context/ProximityContext';
 import { Header } from './components/common/Header';
 import { LobbyView } from './components/lobby/LobbyView';
-import { RoomLobby } from './components/lobby/RoomLobby';
-import { GameView } from './components/game/GameView';
 import { Preloader } from './components/common/Preloader';
 import { startBackgroundMusic } from './utils/sound';
+
+const RoomLobby = lazy(() =>
+  import('./components/lobby/RoomLobby').then((m) => ({ default: m.RoomLobby }))
+);
+const GameView = lazy(() =>
+  import('./components/game/GameView').then((m) => ({ default: m.GameView }))
+);
 
 const MainContent = () => {
   const { roomState } = useGameSocket();
@@ -18,34 +23,39 @@ const MainContent = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col relative overflow-x-hidden selection:bg-zinc-700 selection:text-white">
-      {/* Lobby Background */}
-      <div
-        className={`fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
-          isLobby ? 'opacity-100' : 'opacity-0'
-        }`}
-        style={{ backgroundImage: "url('/background.webp')" }}
-      />
+      {/* Background Container with Subtle Zoom (Slow Ken Burns Breathing Effect) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {/* Lobby Background */}
+        <div
+          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 animate-subtle-zoom ${
+            isLobby ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ backgroundImage: "url('/background.webp')" }}
+        />
 
-      {/* Game Screen Background */}
-      <div
-        className={`fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
-          !isLobby ? 'opacity-100' : 'opacity-0'
-        }`}
-        style={{ backgroundImage: "url('/background-game.webp')" }}
-      />
+        {/* Game Screen Background */}
+        <div
+          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700 animate-subtle-zoom ${
+            !isLobby ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ backgroundImage: "url('/background-game.webp')" }}
+        />
+      </div>
 
-      {/* Persistent Minimalist Header */}
-      <Header />
+      {/* Persistent Minimalist Header - Only shown in game/room, hidden for main lobby */}
+      {roomState && <Header />}
 
       {/* Main Content Area */}
       <main className="flex-1 w-full relative z-10 flex flex-col min-h-0">
-        {!roomState ? (
-          <LobbyView />
-        ) : roomState.phase === 'LOBBY' ? (
-          <RoomLobby />
-        ) : (
-          <GameView />
-        )}
+        <Suspense fallback={null}>
+          {!roomState ? (
+            <LobbyView />
+          ) : roomState.phase === 'LOBBY' ? (
+            <RoomLobby />
+          ) : (
+            <GameView />
+          )}
+        </Suspense>
       </main>
     </div>
   );

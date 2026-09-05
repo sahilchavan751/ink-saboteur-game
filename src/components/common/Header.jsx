@@ -25,6 +25,8 @@ export const Header = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if (!roomState) return null;
+
   return (
     <header className="w-full backdrop-blur-2xl border-b border-white/15 bg-black/25 sticky top-0 z-50 transition-colors shadow-sm">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between relative">
