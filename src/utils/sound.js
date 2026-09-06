@@ -2,19 +2,48 @@
 // Zero external mp3/wav files needed!
 
 let audioCtx = null;
+let sfxGainNode = null;
 let isMuted = localStorage.getItem('ink_saboteur_muted') === 'true';
+
+let currentMusicVolume = (() => {
+  const saved = localStorage.getItem('ink_saboteur_music_volume');
+  return saved !== null ? Number(saved) : 0.15;
+})();
+
+let currentSfxVolume = (() => {
+  const saved = localStorage.getItem('ink_saboteur_sfx_volume');
+  return saved !== null ? Number(saved) : 0.7;
+})();
 
 const getAudioContext = () => {
   if (!audioCtx) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (AudioContextClass) {
       audioCtx = new AudioContextClass();
+      try {
+        sfxGainNode = audioCtx.createGain();
+        sfxGainNode.gain.setValueAtTime(isMuted ? 0 : currentSfxVolume, audioCtx.currentTime);
+        sfxGainNode.connect(audioCtx.destination);
+      } catch (e) {}
     }
   }
   if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume();
   }
   return audioCtx;
+};
+
+const getSfxDestination = () => {
+  const ctx = getAudioContext();
+  if (!ctx) return null;
+  if (!sfxGainNode) {
+    try {
+      sfxGainNode = ctx.createGain();
+      sfxGainNode.gain.setValueAtTime(isMuted ? 0 : currentSfxVolume, ctx.currentTime);
+      sfxGainNode.connect(ctx.destination);
+    } catch (e) {}
+  }
+  return sfxGainNode;
 };
 
 const MUSIC_TRACKS = [
@@ -34,11 +63,6 @@ const notifyMuteListeners = (muted) => {
   });
 };
 
-let currentMusicVolume = (() => {
-  const saved = localStorage.getItem('ink_saboteur_music_volume');
-  return saved !== null ? Number(saved) : 0.15;
-})();
-
 export const subscribeMuteChange = (callback) => {
   muteListeners.add(callback);
   return () => muteListeners.delete(callback);
@@ -52,6 +76,19 @@ export const setMusicVolume = (vol) => {
   localStorage.setItem('ink_saboteur_music_volume', safeVol.toString());
   if (bgMusicAudio && !isMuted) {
     bgMusicAudio.volume = safeVol;
+  }
+};
+
+export const getSfxVolume = () => currentSfxVolume;
+
+export const setSfxVolume = (vol) => {
+  const safeVol = Math.max(0, Math.min(1, vol));
+  currentSfxVolume = safeVol;
+  localStorage.setItem('ink_saboteur_sfx_volume', safeVol.toString());
+  if (sfxGainNode && audioCtx && !isMuted) {
+    try {
+      sfxGainNode.gain.setValueAtTime(safeVol, audioCtx.currentTime);
+    } catch (e) {}
   }
 };
 
@@ -155,6 +192,12 @@ export const toggleMute = () => {
   isMuted = !isMuted;
   localStorage.setItem('ink_saboteur_muted', isMuted ? 'true' : 'false');
 
+  if (sfxGainNode && audioCtx) {
+    try {
+      sfxGainNode.gain.setValueAtTime(isMuted ? 0 : currentSfxVolume, audioCtx.currentTime);
+    } catch (e) {}
+  }
+
   if (bgMusicAudio) {
     if (isMuted) {
       bgMusicAudio.pause();
@@ -184,9 +227,10 @@ export const getIsMuted = () => isMuted;
 
 // Subtle drawing scratch
 export const playStrokeSound = () => {
-  if (isMuted) return;
+  if (isMuted || currentSfxVolume === 0) return;
   const ctx = getAudioContext();
   if (!ctx) return;
+  const dest = getSfxDestination() || ctx.destination;
 
   try {
     const osc = ctx.createOscillator();
@@ -205,7 +249,7 @@ export const playStrokeSound = () => {
 
     osc.connect(filter);
     filter.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(dest);
 
     osc.start();
     osc.stop(ctx.currentTime + 0.08);
@@ -216,9 +260,10 @@ export const playStrokeSound = () => {
 
 // Ink Depleted Warning (buzzy low buzz)
 export const playInkEmpty = () => {
-  if (isMuted) return;
+  if (isMuted || currentSfxVolume === 0) return;
   const ctx = getAudioContext();
   if (!ctx) return;
+  const dest = getSfxDestination() || ctx.destination;
 
   try {
     const osc = ctx.createOscillator();
@@ -231,7 +276,7 @@ export const playInkEmpty = () => {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(dest);
 
     osc.start();
     osc.stop(ctx.currentTime + 0.25);
@@ -240,9 +285,10 @@ export const playInkEmpty = () => {
 
 // Dramatic clock tick for last seconds
 export const playTick = (isUrgent = false) => {
-  if (isMuted) return;
+  if (isMuted || currentSfxVolume === 0) return;
   const ctx = getAudioContext();
   if (!ctx) return;
+  const dest = getSfxDestination() || ctx.destination;
 
   try {
     const osc = ctx.createOscillator();
@@ -254,7 +300,7 @@ export const playTick = (isUrgent = false) => {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(dest);
 
     osc.start();
     osc.stop(ctx.currentTime + 0.06);
@@ -263,9 +309,10 @@ export const playTick = (isUrgent = false) => {
 
 // Vote cast click / thud
 export const playVote = () => {
-  if (isMuted) return;
+  if (isMuted || currentSfxVolume === 0) return;
   const ctx = getAudioContext();
   if (!ctx) return;
+  const dest = getSfxDestination() || ctx.destination;
 
   try {
     const osc = ctx.createOscillator();
@@ -278,7 +325,7 @@ export const playVote = () => {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(dest);
 
     osc.start();
     osc.stop(ctx.currentTime + 0.15);
@@ -287,9 +334,10 @@ export const playVote = () => {
 
 // Dramatic Reveal Suspense Gong
 export const playReveal = () => {
-  if (isMuted) return;
+  if (isMuted || currentSfxVolume === 0) return;
   const ctx = getAudioContext();
   if (!ctx) return;
+  const dest = getSfxDestination() || ctx.destination;
 
   try {
     const freqs = [180, 225, 270];
@@ -303,7 +351,7 @@ export const playReveal = () => {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
 
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(dest);
 
       osc.start();
       osc.stop(ctx.currentTime + 1.2);
@@ -313,9 +361,10 @@ export const playReveal = () => {
 
 // Victory Fanfare
 export const playFanfare = () => {
-  if (isMuted) return;
+  if (isMuted || currentSfxVolume === 0) return;
   const ctx = getAudioContext();
   if (!ctx) return;
+  const dest = getSfxDestination() || ctx.destination;
 
   try {
     const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
@@ -331,7 +380,7 @@ export const playFanfare = () => {
       gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
 
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(dest);
 
       osc.start(startTime);
       osc.stop(startTime + 0.4);
@@ -341,9 +390,10 @@ export const playFanfare = () => {
 
 // Subtle button click
 export const playClick = () => {
-  if (isMuted) return;
+  if (isMuted || currentSfxVolume === 0) return;
   const ctx = getAudioContext();
   if (!ctx) return;
+  const dest = getSfxDestination() || ctx.destination;
 
   try {
     const osc = ctx.createOscillator();
@@ -356,7 +406,7 @@ export const playClick = () => {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(dest);
 
     osc.start();
     osc.stop(ctx.currentTime + 0.04);

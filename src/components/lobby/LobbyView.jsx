@@ -21,6 +21,7 @@ import { INK_COLORS, AVATARS, getRandomColor, getRandomAvatar } from '../../util
 import { playClick } from '../../utils/sound';
 import { PlayerAvatar } from '../common/PlayerAvatar';
 import { MenuSettingsModal } from './MenuSettingsModal';
+import { RulesModal } from './RulesModal';
 
 const COOL_NAMES = [
   'DaVinci', 'Picasso', 'Bandit', 'Doodler',
@@ -539,65 +540,7 @@ export const LobbyView = () => {
       />
 
       {/* Game Rules Tutorial Modal */}
-      {showRules && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-fadeIn"
-          onClick={() => setShowRules(false)}
-        >
-          <div
-            className="bg-black/40 backdrop-blur-2xl border border-white/20 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.45)] space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-white/15 pb-3">
-              <h3 className="font-bold text-sm text-white flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-sky-400" />
-                How to Play InkSpy
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowRules(false)}
-                className="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="bg-black/25 backdrop-blur p-3.5 rounded-xl border border-white/15 space-y-1 text-xs">
-                <div className="text-lg">🎭</div>
-                <h4 className="font-semibold text-white">1. Secret Prompts</h4>
-                <p className="text-white/80 text-[11px] leading-normal">
-                  Citizens get the real prompt. The Saboteur gets a similar fake one.
-                </p>
-              </div>
-
-              <div className="bg-black/25 backdrop-blur p-3.5 rounded-xl border border-white/15 space-y-1 text-xs">
-                <div className="text-lg">🎨</div>
-                <h4 className="font-semibold text-white">2. Whiteboard</h4>
-                <p className="text-white/80 text-[11px] leading-normal">
-                  Everyone draws together on the same white canvas simultaneously.
-                </p>
-              </div>
-
-              <div className="bg-black/25 backdrop-blur p-3.5 rounded-xl border border-white/15 space-y-1 text-xs">
-                <div className="text-lg">🔋</div>
-                <h4 className="font-semibold text-white">3. Ink Battery</h4>
-                <p className="text-white/80 text-[11px] leading-normal">
-                  Each player has only 5s of active drawing time. Make every dot count.
-                </p>
-              </div>
-
-              <div className="bg-black/25 backdrop-blur p-3.5 rounded-xl border border-white/15 space-y-1 text-xs">
-                <div className="text-lg">🗳️</div>
-                <h4 className="font-semibold text-white">4. Deduce & Guess</h4>
-                <p className="text-white/80 text-[11px] leading-normal">
-                  Vote out the Saboteur. If caught, the Saboteur can guess the real prompt!
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
       {/* Avatar Already Taken Popup Modal */}
       {avatarTakenModal.isOpen && (

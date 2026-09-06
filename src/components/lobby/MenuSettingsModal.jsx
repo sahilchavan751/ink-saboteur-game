@@ -1,11 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { X, Volume2, VolumeX, Sliders, Check, User, Music } from 'lucide-react';
-import { toggleMute, getIsMuted, subscribeMuteChange, getMusicVolume, setMusicVolume, playClick } from '../../utils/sound';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, Volume2, VolumeX, Check, User, Music, Dices } from 'lucide-react';
+import {
+  toggleMute,
+  getIsMuted,
+  subscribeMuteChange,
+  getMusicVolume,
+  setMusicVolume,
+  getSfxVolume,
+  setSfxVolume,
+  playClick
+} from '../../utils/sound';
+
+const NICKNAMES = [
+  'DaVinci', 'Picasso', 'Bandit', 'Doodler',
+  'ShadowBrush', 'Rebel', 'Monet', 'Phantom',
+  'Rogue', 'CanvasSneak', 'SplatMaster', 'Echo',
+  'PixelFox', 'InkNinja', 'Vortex', 'Chameleon'
+];
 
 export const MenuSettingsModal = ({ isOpen, onClose, playerName, onSaveName }) => {
   const [isMuted, setIsMuted] = useState(getIsMuted());
-  const [volume, setVolume] = useState(Math.round(getMusicVolume() * 100));
+  const [musicVolume, setMusicVolumeState] = useState(Math.round(getMusicVolume() * 100));
+  const [sfxVolume, setSfxVolumeState] = useState(Math.round(getSfxVolume() * 100));
   const [tempName, setTempName] = useState(playerName || '');
+  const sfxThrottleRef = useRef(0);
 
   useEffect(() => {
     return subscribeMuteChange((newMuted) => setIsMuted(newMuted));
@@ -17,16 +35,62 @@ export const MenuSettingsModal = ({ isOpen, onClose, playerName, onSaveName }) =
 
   if (!isOpen) return null;
 
-  const handleToggleMute = () => {
+  const handleToggleMasterMute = () => {
     playClick();
     const nextMuted = toggleMute();
     setIsMuted(nextMuted);
   };
 
-  const handleVolumeChange = (e) => {
+  const handleMusicChange = (e) => {
     const val = Number(e.target.value);
-    setVolume(val);
+    setMusicVolumeState(val);
     setMusicVolume(val / 100);
+  };
+
+  const toggleMusicQuickMute = () => {
+    playClick();
+    if (musicVolume > 0) {
+      setMusicVolumeState(0);
+      setMusicVolume(0);
+    } else {
+      setMusicVolumeState(40);
+      setMusicVolume(0.4);
+    }
+  };
+
+  const handleSfxChange = (e) => {
+    const val = Number(e.target.value);
+    setSfxVolumeState(val);
+    setSfxVolume(val / 100);
+
+    const now = Date.now();
+    if (now - sfxThrottleRef.current > 120 && val > 0 && !isMuted) {
+      sfxThrottleRef.current = now;
+      playClick();
+    }
+  };
+
+  const handleSfxRelease = () => {
+    if (sfxVolume > 0 && !isMuted) {
+      playClick();
+    }
+  };
+
+  const toggleSfxQuickMute = () => {
+    playClick();
+    if (sfxVolume > 0) {
+      setSfxVolumeState(0);
+      setSfxVolume(0);
+    } else {
+      setSfxVolumeState(70);
+      setSfxVolume(0.7);
+    }
+  };
+
+  const handleRandomizeName = () => {
+    playClick();
+    const random = NICKNAMES[Math.floor(Math.random() * NICKNAMES.length)];
+    setTempName(random);
   };
 
   const handleSave = () => {
@@ -39,125 +103,154 @@ export const MenuSettingsModal = ({ isOpen, onClose, playerName, onSaveName }) =
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-md animate-fadeIn select-none overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-black/40 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.45)] flex flex-col overflow-hidden animate-fadeIn"
+        className="w-full max-w-[440px] bg-gradient-to-b from-black/60 via-zinc-950/75 to-black/85 backdrop-blur-2xl rounded-3xl p-5 sm:p-6 border-2 border-white/20 shadow-[0_8px_0_#0f172a,0_24px_48px_rgba(0,0,0,0.5)] space-y-4 animate-fadeIn my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-white/15 flex items-center justify-between bg-black/20 backdrop-blur">
-          <div className="flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-sky-400" />
-            <h2 className="text-sm font-semibold text-white drop-shadow-sm">Game Settings</h2>
-          </div>
+        {/* Top Bar with Back Navigation */}
+        <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-xl border border-white/20 hover:border-white/40 text-white text-xs font-bold tracking-wide shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer group"
           >
-            <X className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4 text-amber-300 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Back</span>
           </button>
+
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+            <h2 className="text-xs font-black text-white uppercase tracking-wider font-sans">
+              Game Settings
+            </h2>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-5 space-y-5 text-xs">
-          {/* Audio Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-1.5 text-white/90 font-semibold uppercase tracking-wider text-[11px]">
-              <Music className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Audio & Music</span>
-            </div>
-
-            {/* Master Sound Mute Toggle */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/30 border border-white/15 backdrop-blur">
-              <div>
-                <div className="text-white font-medium">Master Sound</div>
-                <div className="text-white/50 text-[10px]">Mute all game sound effects and soundtrack</div>
-              </div>
+        <div className="space-y-4">
+          {/* Artist Nickname Input */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs">
+              <label className="font-medium text-white drop-shadow-sm flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-amber-300" />
+                <span>Artist Name</span>
+              </label>
               <button
                 type="button"
-                onClick={handleToggleMute}
-                className={`p-2 rounded-xl border text-xs transition cursor-pointer flex items-center gap-1.5 ${
-                  isMuted
-                    ? 'bg-rose-500/25 border-rose-400/40 text-rose-200'
-                    : 'bg-emerald-500/25 border-emerald-400/50 text-emerald-200'
-                }`}
-                title={isMuted ? 'Unmute game audio' : 'Mute game audio'}
+                onClick={handleRandomizeName}
+                className="text-white/80 hover:text-white flex items-center gap-1 text-[11px] transition cursor-pointer drop-shadow-sm"
               >
-                {isMuted ? (
-                  <>
-                    <VolumeX className="w-3.5 h-3.5 text-rose-300" />
-                    <span className="font-mono text-[10px] uppercase">Muted</span>
-                  </>
-                ) : (
-                  <>
-                    <Volume2 className="w-3.5 h-3.5 text-emerald-300" />
-                    <span className="font-mono text-[10px] uppercase">Active</span>
-                  </>
-                )}
+                <Dices className="w-3.5 h-3.5 text-amber-300" />
+                <span>Random</span>
               </button>
-            </div>
-
-            {/* Music Volume Slider */}
-            <div className="p-3 rounded-xl bg-black/30 border border-white/15 backdrop-blur space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-white font-medium">Soundtrack Volume</span>
-                <span className="font-mono text-white/80 text-[11px] bg-black/40 px-2 py-0.5 rounded-md border border-white/10">
-                  {volume}%
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="5"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-              />
-              <div className="flex justify-between text-[9px] text-white/40 font-mono">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Profile Section */}
-          <div className="space-y-2 pt-1 border-t border-white/10">
-            <div className="flex items-center gap-1.5 text-white/90 font-semibold uppercase tracking-wider text-[11px]">
-              <User className="w-3.5 h-3.5 text-amber-400" />
-              <span>Player Nickname</span>
             </div>
             <input
               type="text"
               value={tempName}
               onChange={(e) => setTempName(e.target.value)}
               maxLength={16}
-              placeholder="Enter your artist name..."
-              className="w-full px-3 py-2 bg-black/30 backdrop-blur border border-white/20 rounded-xl text-white text-xs placeholder:text-white/40 focus:outline-none focus:border-white/50 transition"
+              placeholder="Your name..."
+              className="w-full px-3.5 py-2 bg-black/25 backdrop-blur border border-white/20 rounded-xl text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-white/50 transition"
+              required
             />
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="px-5 py-3.5 border-t border-white/15 flex items-center justify-end gap-2 bg-black/20 backdrop-blur">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3.5 py-1.5 rounded-xl text-white/70 hover:text-white hover:bg-white/10 text-xs transition cursor-pointer"
-          >
-            Cancel
-          </button>
+          {/* Master Sound Mute Row */}
+          <div className="flex items-center justify-between p-2.5 rounded-2xl bg-black/25 border border-white/15 backdrop-blur">
+            <div>
+              <div className="text-xs font-medium text-white">Master Sound</div>
+              <div className="text-[10px] text-white/50">Mute all game sound & music</div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleMasterMute}
+              className={`px-3 py-1.5 rounded-full border text-[11px] font-bold tracking-wide transition cursor-pointer flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 ${
+                isMuted
+                  ? 'bg-rose-500/25 border-rose-400/40 text-rose-200'
+                  : 'bg-emerald-500/25 border-emerald-400/50 text-emerald-200'
+              }`}
+              title={isMuted ? 'Unmute game audio' : 'Mute game audio'}
+            >
+              {isMuted ? (
+                <>
+                  <VolumeX className="w-3.5 h-3.5 text-rose-300" />
+                  <span className="uppercase font-mono text-[10px]">MUTED</span>
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <span className="uppercase font-mono text-[10px]">ACTIVE</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Minimal Music Volume Slider */}
+          <div className="space-y-1.5 p-3 rounded-2xl bg-black/25 border border-white/15 backdrop-blur">
+            <div className="flex items-center justify-between text-xs">
+              <button
+                type="button"
+                onClick={toggleMusicQuickMute}
+                className="font-medium text-white flex items-center gap-1.5 drop-shadow-sm cursor-pointer hover:text-indigo-200 transition"
+                title="Click to toggle music mute"
+              >
+                <Music className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Music Soundtrack</span>
+              </button>
+              <span className="font-mono text-white/80 text-[11px]">{musicVolume}%</span>
+            </div>
+            <div className="pt-1">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="2"
+                value={musicVolume}
+                onChange={handleMusicChange}
+                className="w-full h-1.5 bg-black/40 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+              />
+            </div>
+          </div>
+
+          {/* Minimal UI & Sound Effects Slider */}
+          <div className="space-y-1.5 p-3 rounded-2xl bg-black/25 border border-white/15 backdrop-blur">
+            <div className="flex items-center justify-between text-xs">
+              <button
+                type="button"
+                onClick={toggleSfxQuickMute}
+                className="font-medium text-white flex items-center gap-1.5 drop-shadow-sm cursor-pointer hover:text-amber-200 transition"
+                title="Click to toggle SFX mute"
+              >
+                <Volume2 className="w-3.5 h-3.5 text-sky-400" />
+                <span>UI & Sound Effects</span>
+              </button>
+              <span className="font-mono text-white/80 text-[11px]">{sfxVolume}%</span>
+            </div>
+            <div className="pt-1">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="2"
+                value={sfxVolume}
+                onChange={handleSfxChange}
+                onPointerUp={handleSfxRelease}
+                className="w-full h-1.5 bg-black/40 rounded-lg appearance-none cursor-pointer accent-amber-400"
+              />
+            </div>
+          </div>
+
+          {/* Submit Action Button - 3D Tactile Game Button matching image 1 */}
           <button
             type="button"
             onClick={handleSave}
-            className="px-4 py-1.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-lg"
+            className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 hover:from-amber-300 hover:to-amber-400 text-zinc-950 shadow-[0_5px_0_#b45309,0_12px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_3px_0_#b45309,0_8px_16px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:translate-y-[5px] active:shadow-none"
           >
-            <Check className="w-3.5 h-3.5" />
-            <span>Save</span>
+            <span>SAVE SETTINGS</span>
+            <Check className="w-4 h-4 stroke-[3]" />
           </button>
         </div>
       </div>
