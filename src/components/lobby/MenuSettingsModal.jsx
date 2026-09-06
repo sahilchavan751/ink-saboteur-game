@@ -121,8 +121,7 @@ export const MenuSettingsModal = ({ isOpen, onClose, playerName, onSaveName }) =
             <span>Back</span>
           </button>
 
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+          <div className="flex items-center">
             <h2 className="text-xs font-black text-white uppercase tracking-wider font-sans">
               Game Settings
             </h2>
@@ -210,7 +209,7 @@ export const MenuSettingsModal = ({ isOpen, onClose, playerName, onSaveName }) =
                 step="2"
                 value={musicVolume}
                 onChange={handleMusicChange}
-                className="w-full h-1.5 bg-black/40 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+                className="w-full h-2 bg-zinc-800/90 rounded-full appearance-none cursor-pointer accent-indigo-400 border border-white/20 shadow-inner hover:border-white/35 transition-colors"
               />
             </div>
           </div>
@@ -238,7 +237,7 @@ export const MenuSettingsModal = ({ isOpen, onClose, playerName, onSaveName }) =
                 value={sfxVolume}
                 onChange={handleSfxChange}
                 onPointerUp={handleSfxRelease}
-                className="w-full h-1.5 bg-black/40 rounded-lg appearance-none cursor-pointer accent-amber-400"
+                className="w-full h-2 bg-zinc-800/90 rounded-full appearance-none cursor-pointer accent-amber-400 border border-white/20 shadow-inner hover:border-white/35 transition-colors"
               />
             </div>
           </div>
