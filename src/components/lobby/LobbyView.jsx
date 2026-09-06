@@ -169,7 +169,7 @@ export const LobbyView = () => {
               Ink<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-emerald-300">Spy</span>
             </h1>
             <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow-sm tracking-wide">
-              Draw subtly. Blend in. Unmask the secret Saboteur.
+              Draw subtly. Blend in. Unmask the secret Suspect.
             </p>
           </div>
 

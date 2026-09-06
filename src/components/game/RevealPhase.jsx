@@ -39,12 +39,12 @@ export const RevealPhase = () => {
           {results.isSaboteurCaught ? (
             <span className="text-emerald-300 flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/30 px-3 py-0.5 rounded-full">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Saboteur Identified
+              Suspect Identified
             </span>
           ) : (
             <span className="text-rose-300 flex items-center gap-1.5 bg-rose-500/15 border border-rose-400/30 px-3 py-0.5 rounded-full">
               <Skull className="w-3.5 h-3.5" />
-              Saboteur Escaped
+              Suspect Escaped
             </span>
           )}
         </div>
@@ -52,7 +52,7 @@ export const RevealPhase = () => {
         {/* Revealed Saboteur Avatar & Name */}
         <div className="space-y-2">
           <span className="text-[10px] sm:text-[11px] uppercase font-mono tracking-widest text-white/50 block">
-            The Saboteur Was
+            The Suspect Was
           </span>
           <div className="flex items-center justify-center gap-3">
             <div
@@ -81,7 +81,7 @@ export const RevealPhase = () => {
           <div className="bg-black/30 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl border border-white/15 text-left space-y-1 shadow-sm">
             <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-emerald-300/90 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Citizens' Real Prompt
+              Detectives' Real Prompt
             </span>
             <div className="text-base sm:text-lg font-bold text-white tracking-wide">
               "{results.citizenPrompt}"
@@ -91,7 +91,7 @@ export const RevealPhase = () => {
           <div className="bg-black/30 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl border border-white/15 text-left space-y-1 shadow-sm">
             <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-rose-300/90 flex items-center gap-1.5">
               <Skull className="w-3.5 h-3.5" />
-              Saboteur's Fake Prompt
+              Suspect's Fake Prompt
             </span>
             <div className="text-base sm:text-lg font-bold text-white tracking-wide">
               "{results.saboteurPrompt}"
@@ -140,7 +140,7 @@ export const RevealPhase = () => {
                         </span>
                         {isSab && (
                           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-400/30 font-medium">
-                            Saboteur
+                            Suspect
                           </span>
                         )}
                       </div>

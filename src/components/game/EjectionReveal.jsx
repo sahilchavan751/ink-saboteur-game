@@ -21,8 +21,8 @@ export const EjectionReveal = () => {
     targetPrimaryText = results?.isSkipWon ? 'Voting was skipped.' : 'Voting tied.';
     targetSecondaryText = 'No one was ejected.';
   } else if (accusedPlayer) {
-    targetPrimaryText = `${accusedPlayer.name} was ${isSaboteur ? 'the' : 'not the'} Saboteur.`;
-    targetSecondaryText = isSaboteur ? '0 Saboteurs remain.' : '1 Saboteur remains.';
+    targetPrimaryText = `${accusedPlayer.name} was ${isSaboteur ? 'the' : 'not the'} Suspect.`;
+    targetSecondaryText = isSaboteur ? '0 Suspects remain.' : '1 Suspect remains.';
   } else {
     targetPrimaryText = 'No one was voted out.';
     targetSecondaryText = 'Drawing continues.';

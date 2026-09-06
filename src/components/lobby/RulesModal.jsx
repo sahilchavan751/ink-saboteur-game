@@ -47,7 +47,7 @@ export const RulesModal = ({ isOpen, onClose }) => {
               <h3 className="font-bold text-xs text-white">1. Secret Prompts</h3>
             </div>
             <p className="text-white/75 text-[11px] leading-relaxed">
-              Citizens get the real prompt. The Saboteur gets a similar fake decoy!
+              Detectives get the real prompt. The Suspect gets a similar fake decoy!
             </p>
           </div>
 
@@ -80,7 +80,7 @@ export const RulesModal = ({ isOpen, onClose }) => {
               <h3 className="font-bold text-xs text-white">4. Deduce & Accuse</h3>
             </div>
             <p className="text-white/75 text-[11px] leading-relaxed">
-              Vote out the Saboteur. If caught, they get one final shot to guess the word!
+              Vote out the Suspect. If caught, they get one final shot to guess the word!
             </p>
           </div>
         </div>
@@ -89,7 +89,7 @@ export const RulesModal = ({ isOpen, onClose }) => {
         <div className="p-3 rounded-2xl bg-amber-400/10 border border-amber-400/25 text-amber-200 text-xs flex items-start gap-2.5 backdrop-blur">
           <Sparkles className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
           <p className="text-[11px] text-white/85 leading-relaxed">
-            <span className="font-bold text-amber-300">Pro-Tip:</span> Blend in! Draw subtle hints that only true Citizens recognize without revealing the whole answer to the Saboteur.
+            <span className="font-bold text-amber-300">Pro-Tip:</span> Blend in! Draw subtle hints that only true Detectives recognize without revealing the whole answer to the Suspect.
           </p>
         </div>
 

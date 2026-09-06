@@ -78,7 +78,7 @@ export const VotingPhase = () => {
                   : 'bg-indigo-500/25 border border-indigo-400/40 text-indigo-200'
               }`}
             >
-              {isSaboteur ? 'Saboteur' : 'Citizen'}
+              {isSaboteur ? 'Suspect' : 'Detective'}
             </span>
           </div>
 
@@ -106,7 +106,7 @@ export const VotingPhase = () => {
           <div className="pb-3 border-b border-white/15 flex items-center justify-between">
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-white/90">
-                Accuse Saboteur
+                Accuse Suspect
               </h3>
               <p className="text-xs text-white/60 mt-0.5">
                 Cast your vote for who you think received the fake prompt.

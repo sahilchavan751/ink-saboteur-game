@@ -190,7 +190,7 @@ export const DrawingPhase = () => {
             </button>
           </div>
 
-          {/* Role Indicator Pill (Citizen / Saboteur) */}
+          {/* Role Indicator Pill (Detective / Suspect) */}
           <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-black/30 backdrop-blur border border-white/15 text-xs font-mono shrink-0 shadow-sm">
             <span className="text-white/50 uppercase text-[10px] sm:text-[11px]">Role:</span>
             {concealed ? (
@@ -203,7 +203,7 @@ export const DrawingPhase = () => {
                     : 'bg-indigo-500/25 border border-indigo-400/40 text-indigo-200'
                 }`}
               >
-                {myRole?.isSaboteur ? 'Saboteur' : 'Citizen'}
+                {myRole?.isSaboteur ? 'Suspect' : 'Detective'}
               </span>
             )}
           </div>
@@ -961,7 +961,7 @@ export const DrawingPhase = () => {
             {/* Bottom Tip Card */}
             <div className="pt-2 border-t border-white/10 text-center shrink-0">
               <p className="text-[10px] text-white/50 font-mono">
-                🕵️ Spot the Saboteur by analyzing drawing strokes in real-time!
+                🕵️ Spot the Suspect by analyzing drawing strokes in real-time!
               </p>
             </div>
           </div>

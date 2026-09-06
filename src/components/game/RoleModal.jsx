@@ -41,7 +41,7 @@ export const RoleModal = () => {
         {/* Role Icon & Title */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-black/30 border border-white/20 flex items-center justify-center text-2xl mx-auto shadow-inner backdrop-blur">
-            {isSaboteur ? '🕵️‍♂️' : '🛡️'}
+            {isSaboteur ? '🕶️' : '🕵️‍♂️'}
           </div>
 
           <div>
@@ -49,7 +49,7 @@ export const RoleModal = () => {
               Secret Assignment
             </span>
             <h2 className="text-xl font-bold text-white drop-shadow-sm mt-0.5">
-              {isSaboteur ? 'You are the Saboteur' : 'You are a Citizen'}
+              {isSaboteur ? 'You are the Suspect' : 'You are a Detective'}
             </h2>
           </div>
         </div>
@@ -84,11 +84,11 @@ export const RoleModal = () => {
         <div className="text-center text-xs text-white/80 leading-relaxed">
           {isSaboteur ? (
             <p>
-              The Citizens have a real prompt related to yours. <strong className="text-white">Draw subtly to blend in, or misdirect without getting voted out.</strong>
+              The Detectives have a real prompt related to yours. <strong className="text-white">Draw subtly to blend in, or misdirect without getting caught.</strong>
             </p>
           ) : (
             <p>
-              Draw this prompt on the shared whiteboard! <strong className="text-white">Watch closely for anyone drawing off-topic strokes.</strong>
+              Draw this prompt on the shared whiteboard! <strong className="text-white">Watch closely to identify and catch the hidden Suspect.</strong>
             </p>
           )}
         </div>
