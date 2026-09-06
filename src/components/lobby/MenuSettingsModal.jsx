@@ -103,7 +103,7 @@ export const MenuSettingsModal = ({ isOpen, onClose, playerName, onSaveName }) =
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-md animate-fadeIn select-none overflow-y-auto"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-md animate-fadeIn select-none overflow-y-auto"
       onClick={onClose}
     >
       <div

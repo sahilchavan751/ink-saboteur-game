@@ -46,7 +46,7 @@ const MainContent = () => {
       {roomState && roomState.phase !== 'EJECTION_REVEAL' && <Header />}
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full relative z-10 flex flex-col min-h-0">
+      <main className="flex-1 w-full relative flex flex-col min-h-0">
         <Suspense fallback={null}>
           {!roomState ? (
             <LobbyView />
