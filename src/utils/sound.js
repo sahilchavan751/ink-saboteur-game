@@ -55,6 +55,58 @@ export const setMusicVolume = (vol) => {
   }
 };
 
+let interactionListenersAttached = false;
+const INTERACTION_EVENTS = ['click', 'touchend', 'touchstart', 'keydown'];
+
+const cleanupInteractionListeners = () => {
+  if (!interactionListenersAttached || typeof window === 'undefined') return;
+  interactionListenersAttached = false;
+  INTERACTION_EVENTS.forEach((evt) => {
+    window.removeEventListener(evt, handleFirstInteraction, true);
+  });
+};
+
+const handleFirstInteraction = () => {
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+
+  if (isMuted) {
+    cleanupInteractionListeners();
+    return;
+  }
+
+  if (!bgMusicAudio) {
+    startBackgroundMusic();
+    return;
+  }
+
+  if (!bgMusicAudio.paused) {
+    cleanupInteractionListeners();
+    return;
+  }
+
+  bgMusicAudio.volume = currentMusicVolume;
+  const playPromise = bgMusicAudio.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        cleanupInteractionListeners();
+      })
+      .catch(() => {
+        // Keep listeners active so subsequent touch or click can retry
+      });
+  }
+};
+
+const attachInteractionListeners = () => {
+  if (interactionListenersAttached || typeof window === 'undefined') return;
+  interactionListenersAttached = true;
+  INTERACTION_EVENTS.forEach((evt) => {
+    window.addEventListener(evt, handleFirstInteraction, { capture: true, passive: true });
+  });
+};
+
 export const startBackgroundMusic = () => {
   if (typeof window === 'undefined') return;
 
@@ -81,27 +133,21 @@ export const startBackgroundMusic = () => {
 
   if (isMuted) {
     bgMusicAudio.pause();
+    cleanupInteractionListeners();
     return;
   }
 
   bgMusicAudio.volume = currentMusicVolume;
   const playPromise = bgMusicAudio.play();
   if (playPromise !== undefined) {
-    playPromise.catch(() => {
-      // Browser autoplay policy blocked - start on first user interaction
-      const resumeOnGesture = () => {
-        if (!isMuted && bgMusicAudio) {
-          bgMusicAudio.volume = currentMusicVolume;
-          bgMusicAudio.play().catch(() => {});
-        }
-        window.removeEventListener('pointerdown', resumeOnGesture);
-        window.removeEventListener('click', resumeOnGesture);
-        window.removeEventListener('keydown', resumeOnGesture);
-      };
-      window.addEventListener('pointerdown', resumeOnGesture, { once: true });
-      window.addEventListener('click', resumeOnGesture, { once: true });
-      window.addEventListener('keydown', resumeOnGesture, { once: true });
-    });
+    playPromise
+      .then(() => {
+        cleanupInteractionListeners();
+      })
+      .catch(() => {
+        // Autoplay blocked by mobile browser - start on first user interaction anywhere
+        attachInteractionListeners();
+      });
   }
 };
 
@@ -112,20 +158,19 @@ export const toggleMute = () => {
   if (bgMusicAudio) {
     if (isMuted) {
       bgMusicAudio.pause();
+      cleanupInteractionListeners();
     } else {
       bgMusicAudio.volume = currentMusicVolume;
-      bgMusicAudio.play().catch(() => {
-        const onUserAction = () => {
-          if (!isMuted && bgMusicAudio) {
-            bgMusicAudio.volume = currentMusicVolume;
-            bgMusicAudio.play().catch(() => {});
-          }
-          window.removeEventListener('pointerdown', onUserAction);
-          window.removeEventListener('click', onUserAction);
-        };
-        window.addEventListener('pointerdown', onUserAction, { once: true });
-        window.addEventListener('click', onUserAction, { once: true });
-      });
+      const playPromise = bgMusicAudio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            cleanupInteractionListeners();
+          })
+          .catch(() => {
+            attachInteractionListeners();
+          });
+      }
     }
   } else if (!isMuted) {
     startBackgroundMusic();
