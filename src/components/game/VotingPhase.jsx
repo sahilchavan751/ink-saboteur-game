@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, ShieldAlert, Check, Users, Lock } from 'lucide-react';
+import { Clock, ShieldAlert, Check, Users, Lock, ThumbsUp } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { CanvasBoard } from './CanvasBoard';
 import { PlayerAvatar } from '../common/PlayerAvatar';
@@ -18,7 +18,8 @@ export const VotingPhase = () => {
   const hasAlreadyVoted = Boolean(currentPlayer?.hasVoted || selectedTargetId);
   const allPlayers = roomState.players || [];
   const myVotedPlayer = allPlayers.find((p) => p.id === myVotedTargetId);
-  const totalVotesCast = allPlayers.filter((p) => p.hasVoted).length;
+  const totalVotesCast = allPlayers.filter((p) => p.hasVoted || (p.id === myPlayerId && selectedTargetId)).length;
+  const remainingVotesCount = Math.max(0, allPlayers.length - totalVotesCast);
   const isSaboteur = roomState.myRole?.isSaboteur || currentPlayer?.isSaboteur;
 
   // Vote Lock System: One person can vote one time only
@@ -54,8 +55,17 @@ export const VotingPhase = () => {
                   Tie-Breaker Vote
                 </span>
               )}
-              <span className="text-xs px-2 py-0.5 rounded-md bg-black/30 border border-white/15 text-white/80 font-mono font-normal">
-                {totalVotesCast} of {allPlayers.length} voted
+              {/* Minimal Vote Counter Pill */}
+              <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-black/40 border border-white/15 text-white/90 font-mono shadow-sm">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    totalVotesCast === allPlayers.length ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
+                  }`}
+                />
+                <span className="font-semibold text-white">{totalVotesCast}</span>
+                <span className="text-white/40">/</span>
+                <span className="text-white/70">{allPlayers.length}</span>
+                <span className="text-white/60 text-[11px] font-sans">voted</span>
               </span>
             </h2>
             <p className="text-xs text-white/70">
@@ -103,7 +113,7 @@ export const VotingPhase = () => {
 
         {/* Accusation List Panel */}
         <div className="lg:col-span-2 flex flex-col bg-black/40 backdrop-blur-2xl p-4 sm:p-5 rounded-2xl border border-white/15 shadow-lg overflow-hidden h-full min-h-0">
-          <div className="pb-3 border-b border-white/15 flex items-center justify-between">
+          <div className="pb-3 border-b border-white/15 flex items-center justify-between gap-2">
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-white/90">
                 Accuse Suspect
@@ -111,6 +121,12 @@ export const VotingPhase = () => {
               <p className="text-xs text-white/60 mt-0.5">
                 Cast your vote for who you think received the fake prompt.
               </p>
+            </div>
+            <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/30 border border-white/10 text-xs font-mono text-white/80 shadow-sm">
+              <span className="text-emerald-400 font-semibold">{totalVotesCast}</span>
+              <span className="text-white/30">/</span>
+              <span>{allPlayers.length}</span>
+              <span className="text-[10px] text-white/50 uppercase tracking-wider">Done</span>
             </div>
           </div>
 
@@ -141,6 +157,7 @@ export const VotingPhase = () => {
             {allPlayers.map((player) => {
               const isSelected = myVotedTargetId === player.id;
               const isMe = player.id === myPlayerId;
+              const isPlayerVoted = Boolean(player.hasVoted || (isMe && selectedTargetId));
 
               return (
                 <button
@@ -151,29 +168,58 @@ export const VotingPhase = () => {
                     isSelected
                       ? 'bg-emerald-500/25 border-emerald-400 ring-2 ring-emerald-400/50 shadow-md scale-[1.01]'
                       : hasAlreadyVoted
-                      ? 'bg-black/15 border-white/10 opacity-50 cursor-not-allowed'
+                      ? 'bg-black/15 border-white/10 opacity-60 cursor-not-allowed'
                       : 'bg-black/25 hover:bg-white/15 border-white/15 hover:border-white/30 cursor-pointer group'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center bg-black/30 border overflow-hidden shrink-0 shadow-inner"
-                      style={{ borderColor: player.color }}
-                    >
-                      <PlayerAvatar avatar={player.avatar} name={player.name} />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative shrink-0">
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center bg-black/30 border overflow-hidden shadow-inner"
+                        style={{ borderColor: player.color }}
+                      >
+                        <PlayerAvatar avatar={player.avatar} name={player.name} />
+                      </div>
+                      {/* Avatar corner thumb badge when voted */}
+                      {isPlayerVoted && (
+                        <div
+                          className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border border-black/60 flex items-center justify-center text-[9px] shadow-sm animate-scaleIn"
+                          title={`${player.name} has cast vote`}
+                        >
+                          👍
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <div className="font-semibold text-sm text-white group-hover:text-white transition flex items-center gap-1.5">
-                        <span>{player.name}</span>
+                    <div className="min-w-0">
+                      <div className="font-semibold text-sm text-white group-hover:text-white transition flex items-center gap-1.5 flex-wrap">
+                        <span className="truncate">{player.name}</span>
                         {isMe && (
-                          <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-white/20 text-white border border-white/10">
+                          <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-white/20 text-white border border-white/10 shrink-0">
                             You
+                          </span>
+                        )}
+                        {/* Thumb sign / Voted badge vs Pending badge */}
+                        {isPlayerVoted ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-mono font-medium shrink-0 shadow-sm animate-fadeIn"
+                            title={`${player.name} has voted`}
+                          >
+                            <ThumbsUp className="w-2.5 h-2.5 text-emerald-400 stroke-[2.5]" />
+                            <span>Voted</span>
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-white/40 text-[10px] font-mono shrink-0"
+                            title="Vote pending..."
+                          >
+                            <Clock className="w-2.5 h-2.5 animate-pulse text-amber-400/70" />
+                            <span>Pending</span>
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-white/60">
                         <span
-                          className="w-2 h-2 rounded-full inline-block"
+                          className="w-2 h-2 rounded-full inline-block shrink-0"
                           style={{ backgroundColor: player.color }}
                         />
                         <span className="text-[11px] font-mono">
@@ -183,7 +229,7 @@ export const VotingPhase = () => {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="shrink-0 ml-2">
                     {isSelected ? (
                       <span className="px-3 py-1.5 rounded-xl bg-emerald-500 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow">
                         <Lock className="w-3 h-3 stroke-[2.5]" />
@@ -254,13 +300,24 @@ export const VotingPhase = () => {
 
           <div className="pt-3 border-t border-white/15 flex items-center justify-between text-xs text-white/60">
             <span className="flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5" />
+              <Users className="w-3.5 h-3.5 text-white/50" />
               {allPlayers.length} Players in match
             </span>
-            <span>{hasAlreadyVoted ? 'Status: Vote Locked (Final)' : 'Action: Select a Suspect'}</span>
+            <span className="font-mono text-[11px]">
+              {remainingVotesCount > 0 ? (
+                <span className="text-amber-300/80">
+                  {remainingVotesCount} {remainingVotesCount === 1 ? 'player' : 'players'} remaining to vote
+                </span>
+              ) : (
+                <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                  <Check className="w-3 h-3" /> All players have voted!
+                </span>
+              )}
+            </span>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
