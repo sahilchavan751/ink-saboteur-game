@@ -155,7 +155,7 @@ export const LobbyView = () => {
             </div>
           </div>
           <pre className="bg-zinc-950 p-2 rounded-lg text-[10px] font-mono text-zinc-300 border border-zinc-800">
-{`{ "rules": { ".read": true, ".write": true } }`}
+            {`{ "rules": { ".read": true, ".write": true } }`}
           </pre>
         </div>
       )}
@@ -331,7 +331,8 @@ export const LobbyView = () => {
             </button>
 
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${viewMode === 'host' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]'}`} />
+              {/* lined out the pulse dot again for looking like ai slop XD.. */}
+              {/* <span className={`w-2 h-2 rounded-full ${viewMode === 'host' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]'}`} /> */}
               <h2 className="text-xs font-black text-white uppercase tracking-wider font-sans">
                 {viewMode === 'host' ? 'Host New Room' : 'Join Game Room'}
               </h2>
@@ -436,13 +437,12 @@ export const LobbyView = () => {
                         }
                         setSelectedAvatar(a.src);
                       }}
-                      className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-150 cursor-pointer ${
-                        isSelected
-                          ? 'border-amber-400 ring-2 ring-amber-400/70 scale-105 shadow-md shadow-amber-400/20 z-10'
-                          : isTaken
+                      className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-150 cursor-pointer ${isSelected
+                        ? 'border-amber-400 ring-2 ring-amber-400/70 scale-105 shadow-md shadow-amber-400/20 z-10'
+                        : isTaken
                           ? 'border-rose-500/40 opacity-50 hover:opacity-75'
                           : 'border-white/25 hover:border-white/70 hover:scale-105 opacity-90 hover:opacity-100'
-                      }`}
+                        }`}
                       title={isTaken ? `${a.name} (Taken by ${takenInfo?.name})` : a.name}
                     >
                       <PlayerAvatar
@@ -495,11 +495,10 @@ export const LobbyView = () => {
                         minWidth: '24px',
                         minHeight: '24px'
                       }}
-                      className={`w-6 h-6 rounded-full transition-transform cursor-pointer border border-white/40 relative shrink-0 flex items-center justify-center ${
-                        isSelected
-                          ? 'scale-110 ring-2 ring-white ring-offset-2 ring-offset-black/50 z-10 shadow-md'
-                          : 'hover:scale-105 opacity-85 hover:opacity-100'
-                      }`}
+                      className={`w-6 h-6 rounded-full transition-transform cursor-pointer border border-white/40 relative shrink-0 flex items-center justify-center ${isSelected
+                        ? 'scale-110 ring-2 ring-white ring-offset-2 ring-offset-black/50 z-10 shadow-md'
+                        : 'hover:scale-105 opacity-85 hover:opacity-100'
+                        }`}
                       title={color.name}
                     >
                       {isSelected && (
@@ -515,11 +514,10 @@ export const LobbyView = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 disabled:opacity-50 disabled:cursor-not-allowed ${
-                viewMode === 'host'
-                  ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 hover:from-amber-300 hover:to-amber-400 text-zinc-950 shadow-[0_5px_0_#b45309,0_12px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_3px_0_#b45309,0_8px_16px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:translate-y-[5px] active:shadow-none'
-                  : 'bg-gradient-to-r from-sky-400 via-cyan-300 to-sky-400 hover:from-sky-300 hover:to-sky-400 text-zinc-950 shadow-[0_5px_0_#0369a1,0_12px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_3px_0_#0369a1,0_8px_16px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:translate-y-[5px] active:shadow-none'
-              }`}
+              className={`w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 disabled:opacity-50 disabled:cursor-not-allowed ${viewMode === 'host'
+                ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 hover:from-amber-300 hover:to-amber-400 text-zinc-950 shadow-[0_5px_0_#b45309,0_12px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_3px_0_#b45309,0_8px_16px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:translate-y-[5px] active:shadow-none'
+                : 'bg-gradient-to-r from-sky-400 via-cyan-300 to-sky-400 hover:from-sky-300 hover:to-sky-400 text-zinc-950 shadow-[0_5px_0_#0369a1,0_12px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_3px_0_#0369a1,0_8px_16px_rgba(0,0,0,0.4)] hover:translate-y-[2px] active:translate-y-[5px] active:shadow-none'
+                }`}
             >
               <span>{loading ? 'Connecting...' : viewMode === 'host' ? 'Create Game Room' : 'Join Game Room'}</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5]" />

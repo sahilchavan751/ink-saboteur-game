@@ -31,7 +31,8 @@ export const RulesModal = ({ isOpen, onClose }) => {
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
+            {/* ---lined out the blue dot cause of looking like a ai slop--- */}
+            {/* <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]" /> */}
             <h2 className="text-xs font-black text-white uppercase tracking-wider font-sans">
               How to Play InkSpy
             </h2>
