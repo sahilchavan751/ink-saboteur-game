@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { CheckCircle2, ArrowRight, ShieldCheck, Skull, Clock } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ShieldCheck, Skull, Clock, Frame, Download } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { playClick } from '../../utils/sound';
 import { PlayerAvatar } from '../common/PlayerAvatar';
+import { FramedMasterpieceModal } from './FramedMasterpieceModal';
+import { downloadFramedMasterpiece } from '../../utils/frameExporter';
 
 export const RevealPhase = () => {
-  const { roomState, timer, socket, nextRound } = useGameSocket();
+  const { roomState, timer, socket, nextRound, strokes, roundGallery } = useGameSocket();
   const [advancing, setAdvancing] = useState(false);
+  const [showFrameModal, setShowFrameModal] = useState(false);
 
   if (!roomState || !roomState.roundResults) return null;
 
@@ -99,6 +102,60 @@ export const RevealPhase = () => {
           </div>
         </div>
       </div>
+
+      {/* Per-Round Masterpiece Download Banner */}
+      <div className="relative bg-black/40 bg-gradient-to-br from-amber-500/15 via-black/30 to-amber-950/20 backdrop-blur-2xl p-3.5 sm:p-4 rounded-2xl border border-amber-400/25 shadow-xl overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/35 to-transparent pointer-events-none" />
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-700/20 border border-amber-400/25 flex items-center justify-center shrink-0">
+            <Frame className="w-4 h-4 text-amber-300" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-xs font-bold text-white tracking-tight">Round {roomState.currentRound} Masterpiece</h4>
+            <p className="text-[10px] text-white/60 font-mono truncate">"{results.citizenPrompt}"</p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => {
+                playClick();
+                // Use gallery snapshot if available, otherwise live strokes
+                const galleryRound = (roundGallery || []).find((r) => r.roundNumber === roomState.currentRound);
+                const options = {
+                  strokes: galleryRound?.strokes || strokes || [],
+                  players: galleryRound?.players || roomState.players || [],
+                  title: results.citizenPrompt || roomState.citizenPrompt || 'Masterpiece',
+                  roomCode: galleryRound?.roomCode || roomState.code || '????',
+                  date: galleryRound?.date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                  frameStyle: 'gold',
+                  roundNumber: roomState.currentRound || 1,
+                };
+                downloadFramedMasterpiece(options);
+              }}
+              className="px-3 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-bold text-[11px] flex items-center gap-1.5 transition cursor-pointer shadow-sm shadow-amber-500/15 active:scale-95"
+            >
+              <Download className="w-3 h-3" />
+              Quick Save
+            </button>
+            <button
+              onClick={() => {
+                playClick();
+                setShowFrameModal(true);
+              }}
+              className="px-3 py-2 rounded-lg bg-black/40 hover:bg-white/10 text-white font-semibold text-[11px] border border-white/10 backdrop-blur flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+            >
+              <Frame className="w-3 h-3" />
+              Frame Studio
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Framed Masterpiece Modal */}
+      <FramedMasterpieceModal
+        isOpen={showFrameModal}
+        onClose={() => setShowFrameModal(false)}
+        initialRoundNumber={roomState.currentRound}
+      />
 
 
 

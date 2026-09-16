@@ -37,12 +37,14 @@ export const SocketProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [firebaseRuleAlert, setFirebaseRuleAlert] = useState(false);
   const [loadingRoom, setLoadingRoom] = useState(false);
+  const [roundGallery, setRoundGallery] = useState([]);
 
   const playerIdRef = useRef(getOrCreatePlayerId());
   const myPlayerId = playerIdRef.current;
   const isHostRef = useRef(false);
   const roomCodeRef = useRef(null);
   const tickerRef = useRef(null);
+  const currentStrokesRef = useRef([]);
 
   // Monitor database connection and maintain presence
   useEffect(() => {
@@ -442,6 +444,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     setStrokes([]);
+    currentStrokesRef.current = [];
     runPhaseTimer(activeRoomCode);
   };
 
@@ -450,6 +453,7 @@ export const SocketProvider = ({ children }) => {
     if (!roomCode) {
       setRoomState(null);
       setStrokes([]);
+      currentStrokesRef.current = [];
       setRemoteCursors({});
       if (tickerRef.current) clearInterval(tickerRef.current);
       return;
@@ -498,6 +502,34 @@ export const SocketProvider = ({ children }) => {
         }
         return { timeRemaining: currentTimerVal, phase: data.phase };
       });
+
+      // Snapshot round drawing into gallery when entering REVEAL_SCORING (before strokes get wiped)
+      if (data.phase === 'REVEAL_SCORING' || data.phase === 'EJECTION_REVEAL' || data.phase === 'GAME_OVER') {
+        const roundNum = data.currentRound || 1;
+        const snapshotStrokes = currentStrokesRef.current;
+        if (snapshotStrokes.length > 0) {
+          setRoundGallery((prev) => {
+            const alreadyExists = prev.some((r) => r.roundNumber === roundNum);
+            if (alreadyExists) return prev;
+            const snapshot = {
+              roundNumber: roundNum,
+              strokes: [...snapshotStrokes],
+              citizenPrompt: data.roundResults?.citizenPrompt || data.citizenPrompt || 'Masterpiece',
+              saboteurPrompt: data.roundResults?.saboteurPrompt || data.saboteurPrompt || '',
+              category: data.roundResults?.category || data.category || '',
+              saboteurId: data.roundResults?.saboteurId || data.saboteurId || null,
+              players: Object.values(data.players || {}).map((p) => ({
+                id: p.id, name: p.name, color: p.color, avatar: p.avatar,
+              })),
+              date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+              roomCode: data.code,
+            };
+            const updated = [...prev, snapshot];
+            try { sessionStorage.setItem(`inkspy_gallery_${data.code}`, JSON.stringify(updated)); } catch (e) {}
+            return updated;
+          });
+        }
+      }
 
       const isRevealMode = data.phase === 'EJECTION_REVEAL' || data.phase === 'REVEAL_SCORING' || data.phase === 'GAME_OVER';
       const isResultsAvailable = isRevealMode || data.phase === 'VOTING_RESULTS';
@@ -564,6 +596,8 @@ export const SocketProvider = ({ children }) => {
           } : data.roundResults
         ) : null,
         isTieBreaker: !!data.isTieBreaker,
+        citizenPrompt: data.citizenPrompt || '',
+        saboteurPrompt: data.saboteurPrompt || '',
         players: publicPlayers
       });
 
@@ -585,6 +619,7 @@ export const SocketProvider = ({ children }) => {
     const unsubscribeStrokesReset = onValue(strokesRef, (snap) => {
       if (!snap.exists()) {
         setStrokes([]);
+        currentStrokesRef.current = [];
       }
     });
 
@@ -593,7 +628,9 @@ export const SocketProvider = ({ children }) => {
       if (stroke) {
         setStrokes((prev) => {
           if (prev.some((s) => s.id === stroke.id)) return prev;
-          return [...prev, stroke];
+          const next = [...prev, stroke];
+          currentStrokesRef.current = next;
+          return next;
         });
         if (stroke.playerId !== myPlayerId) {
           playStrokeSound();
@@ -981,6 +1018,9 @@ export const SocketProvider = ({ children }) => {
     });
 
     setStrokes([]);
+    currentStrokesRef.current = [];
+    setRoundGallery([]);
+    try { sessionStorage.removeItem(`inkspy_gallery_${roomCode}`); } catch (e) {}
     if (tickerRef.current) clearInterval(tickerRef.current);
     return { success: true };
   }, [roomCode]);
@@ -1032,6 +1072,9 @@ export const SocketProvider = ({ children }) => {
     setRoomCode(null);
     setRoomState(null);
     setStrokes([]);
+    currentStrokesRef.current = [];
+    setRoundGallery([]);
+    try { if (codeToLeave) sessionStorage.removeItem(`inkspy_gallery_${codeToLeave}`); } catch (e) {}
     setRemoteCursors({});
     setChatMessages([]);
     if (tickerRef.current) clearInterval(tickerRef.current);
@@ -1116,6 +1159,7 @@ export const SocketProvider = ({ children }) => {
         roomState,
         timer,
         strokes,
+        roundGallery,
         remoteCursors,
         chatMessages,
         sendChatMessage,

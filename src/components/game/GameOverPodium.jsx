@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { RotateCcw, Home } from 'lucide-react';
+import { RotateCcw, Home, Frame, Download } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { playFanfare, playClick } from '../../utils/sound';
 import { PlayerAvatar } from '../common/PlayerAvatar';
+import { FramedMasterpieceModal } from './FramedMasterpieceModal';
+import { downloadFramedMasterpiece } from '../../utils/frameExporter';
 
 export const GameOverPodium = () => {
-  const { roomState, playAgain, leaveRoom, socket } = useGameSocket();
+  const { roomState, playAgain, leaveRoom, socket, strokes, roundGallery } = useGameSocket();
+  const [showFrameModal, setShowFrameModal] = useState(false);
 
   useEffect(() => {
     playFanfare();
@@ -161,6 +164,56 @@ export const GameOverPodium = () => {
           ))}
         </div>
       </div>
+
+      {/* Framed Masterpiece Export Banner */}
+      <div className="relative bg-black/40 bg-gradient-to-br from-amber-500/15 via-black/30 to-amber-950/20 backdrop-blur-2xl p-4 sm:p-5 rounded-2xl border border-amber-400/25 shadow-xl overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/35 to-transparent pointer-events-none" />
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-700/20 border border-amber-400/30 flex items-center justify-center shrink-0 shadow-md">
+            <Frame className="w-5 h-5 text-amber-300" />
+          </div>
+          <div className="flex-1 text-center sm:text-left">
+            <h3 className="text-sm font-bold text-white tracking-tight">Download Framed Masterpiece</h3>
+      <p className="text-[11px] text-white/60 font-mono">Export drawings from {roundGallery.length > 0 ? `all ${roundGallery.length} round${roundGallery.length !== 1 ? 's' : ''}` : 'this round'} in vintage museum frames with signatures</p>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => {
+                playClick();
+                // Use the last gallery entry if available, else live strokes
+                const lastRound = roundGallery.length > 0 ? roundGallery[roundGallery.length - 1] : null;
+                const options = {
+                  strokes: lastRound?.strokes || strokes || [],
+                  players: lastRound?.players || roomState.players || [],
+                  title: lastRound?.citizenPrompt || roomState.roundResults?.citizenPrompt || roomState.citizenPrompt || 'Masterpiece',
+                  roomCode: lastRound?.roomCode || roomState.code || '????',
+                  date: lastRound?.date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                  frameStyle: 'gold',
+                  roundNumber: lastRound?.roundNumber || roomState.currentRound || 1,
+                };
+                downloadFramedMasterpiece(options);
+              }}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md shadow-amber-500/20 active:scale-95"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Quick Save
+            </button>
+            <button
+              onClick={() => {
+                playClick();
+                setShowFrameModal(true);
+              }}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-black/40 hover:bg-white/10 text-white font-semibold text-xs border border-white/15 backdrop-blur flex items-center justify-center gap-2 transition cursor-pointer active:scale-95"
+            >
+              <Frame className="w-3.5 h-3.5" />
+              Frame Studio
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Framed Masterpiece Modal */}
+      <FramedMasterpieceModal isOpen={showFrameModal} onClose={() => setShowFrameModal(false)} />
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">

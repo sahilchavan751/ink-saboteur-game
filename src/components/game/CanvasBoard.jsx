@@ -370,13 +370,13 @@ export const CanvasBoard = ({
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
           className={`absolute inset-0 w-full h-full block ${
-            isPanMode || (!isInteractive && !isDrawingRef.current)
+            isPanMode
               ? 'cursor-grab active:cursor-grabbing'
               : isInteractive && inkRemaining > 0
               ? 'cursor-crosshair'
               : isInteractive && inkRemaining <= 0
               ? 'cursor-not-allowed'
-              : 'cursor-grab'
+              : 'cursor-default'
           }`}
         />
 

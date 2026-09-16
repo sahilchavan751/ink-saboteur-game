@@ -741,7 +741,7 @@ export const DrawingPhase = () => {
 
       {/* DRAWING INTERMISSION BLURRED OVERLAY WITH COUNTDOWN & ARTIST NAMES */}
       {roomState.phase === 'DRAWING_INTERMISSION' && (
-        <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/40 flex items-center justify-center p-4 animate-fadeIn">
+        <div className="fixed inset-0 z-50 backdrop-blur-md bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="relative max-w-lg w-full bg-black/45 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 sm:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.5)] space-y-5 text-center overflow-hidden">
             {/* Top Specular Edge Glow */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent pointer-events-none" />
