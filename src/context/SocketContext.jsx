@@ -1218,33 +1218,33 @@ export const SocketProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  // Join a random public room queue or create a new public room
+  // Join a random public room queue with existing members
   const joinRandomQueue = useCallback(async (playerName, color, avatar) => {
     setError(null);
     setFirebaseRuleAlert(false);
     setLoadingRoom(true);
 
     try {
-      // Fetch all rooms and find available public ones
+      // Fetch all rooms and find available public ones that have players
       const roomsSnap = await get(ref(db, 'rooms'));
       let bestRoom = null;
       const now = Date.now();
 
       if (roomsSnap.exists()) {
         const allRooms = roomsSnap.val();
-        let bestCount = -1;
+        let bestCount = 0;
 
         Object.entries(allRooms).forEach(([code, room]) => {
+          const playersCount = room.players ? Object.keys(room.players).length : 0;
           if (
             room.isPublic &&
             room.phase === 'LOBBY' &&
-            room.players &&
-            Object.keys(room.players).length < (room.maxPlayers || 8) &&
+            playersCount > 0 &&
+            playersCount < (room.maxPlayers || 8) &&
             (now - (room.lastActivity || 0)) < 5 * 60 * 1000
           ) {
-            const count = Object.keys(room.players).length;
             // Pick the room with most players (closest to starting)
-            if (count > bestCount) {
+            if (playersCount > bestCount) {
               // Check avatar conflict
               const takenAvatars = Object.values(room.players)
                 .filter((p) => p.id !== myPlayerId)
@@ -1252,14 +1252,14 @@ export const SocketProvider = ({ children }) => {
               const chosenAvatar = avatar || '/avatar/dino.webp';
               if (!takenAvatars.includes(chosenAvatar)) {
                 bestRoom = room;
-                bestCount = count;
+                bestCount = playersCount;
               } else {
                 // Try to find a free avatar
                 const allAvatarSrcs = AVATARS.map((a) => a.src);
                 const freeAvatar = allAvatarSrcs.find((src) => !takenAvatars.includes(src));
                 if (freeAvatar) {
                   bestRoom = { ...room, _resolvedAvatar: freeAvatar };
-                  bestCount = count;
+                  bestCount = playersCount;
                 }
               }
             }
@@ -1268,21 +1268,25 @@ export const SocketProvider = ({ children }) => {
       }
 
       if (bestRoom) {
-        // Join the best available room
+        // Join the best available room with existing members
         const resolvedAvatar = bestRoom._resolvedAvatar || avatar || '/avatar/dino.webp';
         setLoadingRoom(false);
         return await joinRoom(bestRoom.code, playerName, color, resolvedAvatar);
       } else {
-        // No public room available — create a new public one
+        // No public room with members is available
         setLoadingRoom(false);
-        return await createRoom(playerName, color, avatar, true);
+        const errMsg = 'No public rooms are available right now.';
+        const err = new Error(errMsg);
+        err.code = 'NO_ROOMS_AVAILABLE';
+        setError(errMsg);
+        throw err;
       }
     } catch (err) {
       setLoadingRoom(false);
-      setError(err.message);
+      setError(err.message || 'No public rooms are available right now.');
       throw err;
     }
-  }, [myPlayerId, joinRoom, createRoom]);
+  }, [myPlayerId, joinRoom]);
 
   // Cleanup room from Firebase (for session end)
   const cleanupRoom = useCallback(async () => {

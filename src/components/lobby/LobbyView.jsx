@@ -373,6 +373,28 @@ export const LobbyView = () => {
             </p>
           </div>
 
+          {/* Error notification if any */}
+          {error && !firebaseRuleAlert && (
+            <div className="p-3 rounded-2xl bg-rose-950/70 border border-rose-400/50 text-white text-xs flex items-center justify-between gap-3 backdrop-blur animate-fadeIn">
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertTriangle className="w-4 h-4 text-rose-300 shrink-0" />
+                <span className="font-medium truncate">{error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  playClick();
+                  setError(null);
+                  setIsPublicRoom(true);
+                  setViewMode('host');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-[11px] shrink-0 transition cursor-pointer shadow-sm"
+              >
+                Host a Room
+              </button>
+            </div>
+          )}
+
           {/* Quick Match Card */}
           <button
             type="button"
@@ -385,7 +407,7 @@ export const LobbyView = () => {
               try {
                 await joinRandomQueue(playerName.trim() || 'Artist', selectedColor.hex, selectedAvatar);
               } catch (err) {
-                // handled by context
+                setError(err.message || 'No public rooms are available right now.');
               } finally {
                 setLoading(false);
               }
@@ -401,7 +423,7 @@ export const LobbyView = () => {
                   Quick Match
                 </h3>
                 <p className="text-xs text-white/70 leading-relaxed">
-                  Instantly join the best available public room or create one.
+                  Instantly join an open public room waiting for players.
                 </p>
               </div>
               <div className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 text-zinc-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shrink-0">
@@ -415,8 +437,9 @@ export const LobbyView = () => {
           </button>
 
           {/* Ongoing Public Rooms */}
-          <div className="bg-black/40 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 border border-white/20 shadow-lg space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-white/15">
+          {/* Ongoing Public Rooms */}
+          <div className="bg-black/40 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 border border-white/20 shadow-lg flex flex-col h-[280px]">
+            <div className="flex items-center justify-between pb-2.5 border-b border-white/15 shrink-0">
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-emerald-400" />
                 <h3 className="text-sm font-bold text-white">Public Lobbies</h3>
@@ -426,19 +449,32 @@ export const LobbyView = () => {
               </span>
             </div>
 
-            {publicRooms.length === 0 ? (
-              <div className="py-8 flex flex-col items-center justify-center text-center space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center">
-                  <Radio className="w-6 h-6 text-white/25" />
+            <div className="flex-1 min-h-0 overflow-y-auto mt-2.5 pr-1 space-y-2 glass-scrollbar">
+              {publicRooms.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-3 py-2">
+                  <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center">
+                    <Radio className="w-6 h-6 text-white/25" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white/70">No public lobbies waiting right now</p>
+                    <p className="text-xs text-white/40 mt-0.5">Start a public room and invite others to join!</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playClick();
+                      setError(null);
+                      setIsPublicRoom(true);
+                      setViewMode('host');
+                    }}
+                    className="mt-1 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-zinc-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transition cursor-pointer"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-zinc-950" />
+                    Host a Public Room
+                  </button>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-white/70">No public lobbies waiting</p>
-                  <p className="text-xs text-white/40 mt-0.5">Be the first to start one! Click Quick Match above.</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                {publicRooms.map((room) => (
+              ) : (
+                publicRooms.map((room) => (
                   <div
                     key={room.code}
                     className="flex items-center justify-between p-3 rounded-xl bg-black/30 backdrop-blur border border-white/15 hover:border-white/30 transition group"
@@ -503,9 +539,9 @@ export const LobbyView = () => {
                       Join
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
