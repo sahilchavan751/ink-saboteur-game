@@ -346,7 +346,7 @@ export const LobbyView = () => {
 
       {/* VIEW: ONLINE MATCHMAKING QUEUE */}
       {viewMode === 'online' && (
-        <div className="w-full max-w-2xl my-auto space-y-6 animate-fadeIn select-none px-4">
+        <div className="w-full max-w-2xl my-auto space-y-4 sm:space-y-4.5 animate-fadeIn select-none px-4">
           {/* Top Bar with Floating Back Button */}
           <div className="flex items-center justify-start">
             <button
@@ -364,8 +364,8 @@ export const LobbyView = () => {
           </div>
 
           {/* Section Header */}
-          <div className="text-center space-y-1.5">
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight drop-shadow font-sans">
+          <div className="text-center space-y-1">
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow font-sans">
               Play Online
             </h2>
             <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow-sm">
@@ -395,50 +395,55 @@ export const LobbyView = () => {
             </div>
           )}
 
-          {/* Quick Match Card */}
-          <button
-            type="button"
-            onClick={async () => {
-              if (loading || loadingRoom) return;
-              playClick();
-              setLoading(true);
-              setError(null);
-              localStorage.setItem('ink_saboteur_name', playerName.trim());
-              try {
-                await joinRandomQueue(playerName.trim() || 'Artist', selectedColor.hex, selectedAvatar);
-              } catch (err) {
-                setError(err.message || 'No public rooms are available right now.');
-              } finally {
-                setLoading(false);
-              }
-            }}
-            disabled={loading || loadingRoom}
-            className="w-full group relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-b from-emerald-500/20 via-black/50 to-black/70 backdrop-blur-2xl border-2 border-emerald-400/50 hover:border-emerald-300 shadow-[0_6px_0_#047857,0_16px_32px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_0_#047857,0_10px_24px_rgba(0,0,0,0.5)] hover:translate-y-[1px] active:translate-y-[4px] active:shadow-none transition-all duration-150 text-left cursor-pointer disabled:opacity-60"
-          >
-            <div className="absolute -top-12 -right-12 w-36 h-36 bg-emerald-400/15 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-400/25 transition-all" />
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-emerald-200 transition-colors tracking-tight font-sans flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-emerald-400" />
+          {/* Quick Match Action Bar — High-Contrast Arcade Game Style */}
+          <div className="w-full p-3.5 sm:p-4 rounded-2xl bg-black/55 backdrop-blur-2xl border-2 border-emerald-400/40 hover:border-emerald-400/70 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] flex items-center justify-between gap-4 transition group">
+            <div className="flex items-center gap-3.5 min-w-0">
+              {/* Arcade Glowing Icon Badge */}
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-emerald-400 to-teal-600 border border-emerald-300/80 shadow-[0_0_15px_rgba(52,211,153,0.5)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Zap className="w-5 h-5 text-white fill-white drop-shadow" />
+              </div>
+
+              {/* High Contrast Crisp Typography */}
+              <div className="min-w-0">
+                <h3 className="text-base sm:text-lg font-black text-white tracking-tight drop-shadow font-sans">
                   Quick Match
                 </h3>
-                <p className="text-xs text-white/70 leading-relaxed">
-                  Instantly join an open public room waiting for players.
+                <p className="text-xs sm:text-[13px] font-medium text-white/90 drop-shadow-sm mt-0.5 truncate">
+                  Jump into the best open public room waiting for players
                 </p>
               </div>
-              <div className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 text-zinc-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shrink-0">
-                {(loading || loadingRoom) ? (
-                  <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Joining...</>
-                ) : (
-                  <><Play className="w-3.5 h-3.5 fill-zinc-950" /> GO</>
-                )}
-              </div>
             </div>
-          </button>
 
-          {/* Ongoing Public Rooms */}
-          {/* Ongoing Public Rooms */}
-          <div className="bg-black/40 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 border border-white/20 shadow-lg flex flex-col h-[280px]">
+            {/* 3D Tactile Game Action Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                if (loading || loadingRoom) return;
+                playClick();
+                setLoading(true);
+                setError(null);
+                localStorage.setItem('ink_saboteur_name', playerName.trim());
+                try {
+                  await joinRandomQueue(playerName.trim() || 'Artist', selectedColor.hex, selectedAvatar);
+                } catch (err) {
+                  setError(err.message || 'No public rooms are available right now.');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading || loadingRoom}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-b from-emerald-300 via-emerald-400 to-emerald-500 hover:from-emerald-200 hover:to-emerald-400 text-zinc-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 shadow-[0_4px_0_#047857,0_8px_20px_rgba(4,120,87,0.4)] hover:shadow-[0_2px_0_#047857] hover:translate-y-[2px] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer shrink-0 disabled:opacity-50"
+            >
+              {(loading || loadingRoom) ? (
+                <><RefreshCw className="w-4 h-4 animate-spin stroke-[2.5]" /> Joining...</>
+              ) : (
+                <><Play className="w-4 h-4 fill-zinc-950 stroke-[2.5]" /> GO</>
+              )}
+            </button>
+          </div>
+
+          {/* Ongoing Public Rooms — Expanded spacious size */}
+          <div className="bg-black/40 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 border border-white/20 shadow-lg flex flex-col h-[360px] sm:h-[380px]">
             <div className="flex items-center justify-between pb-2.5 border-b border-white/15 shrink-0">
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-emerald-400" />
