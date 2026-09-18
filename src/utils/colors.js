@@ -67,3 +67,24 @@ export const getAvatarSrc = (avatar) => {
   }
   return null;
 };
+
+// 60+ Fun, diverse, famous, and playful demo artist names
+export const COOL_ARTIST_NAMES = [
+  // Famous Masters & Iconic Legends
+  'DaVinci', 'Picasso', 'VanGogh', 'BobRoss', 'Monet', 'Warhol', 'Rembrandt', 'Dali', 'Frida', 'Banksy',
+  'Michelangelo', 'Matisse', 'Basquiat', 'Hokusai', 'Klimt', 'Pollock',
+  // Playful Street, Arcade & Ink Aliases
+  'Doodler', 'ShadowBrush', 'Bandit', 'Rebel', 'Phantom', 'Rogue', 'CanvasSneak', 'SplatMaster', 'Echo',
+  'InkNinja', 'SketchyCat', 'PixelPirate', 'NeonViper', 'GraffitiGhost', 'CrayonKing', 'VibeArtist', 'SplatHero',
+  'SpeedyPen', 'ArtAttack', 'ColorCraze', 'SneakyBrush', 'InkDrop', 'ChalkMaster', 'MemePainter', 'DoodleBug',
+  'DoodleBob', 'MasterShredder', 'GraffitiFox', 'InkPhantom', 'PastelPanda', 'ShadowArtist', 'BrushBrawler',
+  'ScribbleChamp', 'VelvetBrush', 'GouacheGoat', 'Inkognito', 'CanvasGhost', 'SplatKing', 'DoodleDemon',
+  'ColorWizard', 'RetroSketcher', 'InkVandal', 'AeroBrush', 'PrismKnight', 'SpeedySketch', 'NeonArtist',
+  'Chalky', 'Splatzilla', 'BrushBoss', 'InkBlot', 'SketchyPaws', 'PaletteKing', 'DoodleDuck', 'InkCaptain',
+  'PaperTiger', 'ChalkKnight', 'SplatBandit', 'ComicCaper', 'ZenSketcher', 'PopArtist'
+];
+
+export const getRandomArtistName = () => {
+  return COOL_ARTIST_NAMES[Math.floor(Math.random() * COOL_ARTIST_NAMES.length)];
+};
+

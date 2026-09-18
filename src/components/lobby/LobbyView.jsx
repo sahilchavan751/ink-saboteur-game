@@ -22,17 +22,13 @@ import {
   Zap
 } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
-import { INK_COLORS, AVATARS, getRandomColor, getRandomAvatar } from '../../utils/colors';
+import { INK_COLORS, AVATARS, getRandomColor, getRandomAvatar, COOL_ARTIST_NAMES } from '../../utils/colors';
 import { playClick } from '../../utils/sound';
 import { PlayerAvatar } from '../common/PlayerAvatar';
 import { MenuSettingsModal } from './MenuSettingsModal';
 import { RulesModal } from './RulesModal';
 
-const COOL_NAMES = [
-  'DaVinci', 'Picasso', 'Bandit', 'Doodler',
-  'ShadowBrush', 'Rebel', 'Monet', 'Phantom',
-  'Rogue', 'CanvasSneak', 'SplatMaster', 'Echo'
-];
+const COOL_NAMES = COOL_ARTIST_NAMES;
 
 export const LobbyView = () => {
   const { createRoom, joinRoom, getRoomTakenAvatars, error, setError, firebaseRuleAlert, subscribePublicRooms, joinRandomQueue, loadingRoom } = useGameSocket();

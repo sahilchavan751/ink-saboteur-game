@@ -684,6 +684,247 @@ export const PROMPT_PAIRS = [
     promptA: "Open Book",
     promptB: "Flying Bird",
     hint: "Two rectangular pages fanning out like wings"
+  },
+  // --- POP CULTURE, SOCIAL MEDIA & GAMING HITS (Easy, Funny & Simple) ---
+  {
+    category: "Social Media Icons",
+    promptA: "Instagram Camera",
+    promptB: "Polaroid Camera",
+    hint: "Rounded square with a circle lens and corner flash dot"
+  },
+  {
+    category: "Social Media Rivals",
+    promptA: "Snapchat Ghost",
+    promptB: "Pac-Man Ghost",
+    hint: "Bell-shaped ghost with a wavy curved bottom"
+  },
+  {
+    category: "Video Streaming",
+    promptA: "YouTube Play Button",
+    promptB: "Triangle Cheese Wedge",
+    hint: "Rounded rectangle with a centered right-pointing play triangle"
+  },
+  {
+    category: "Music & Trends",
+    promptA: "TikTok Logo",
+    promptB: "Anchor at Sea",
+    hint: "Eighth-note musical stave with angled hooks"
+  },
+  {
+    category: "Gaming Crew",
+    promptA: "Among Us Crewmate",
+    promptB: "Thumbs Up Hand",
+    hint: "Chubby rounded bean with a horizontal visor backpack"
+  },
+  {
+    category: "Blocky Games",
+    promptA: "Minecraft Pickaxe",
+    promptB: "Sailing Anchor",
+    hint: "Long stick handle with a curved double-headed top"
+  },
+  {
+    category: "Blocky Characters",
+    promptA: "Roblox Noob",
+    promptB: "Lego Minifigure",
+    hint: "Boxy square head with rectangular torso and stubby arms"
+  },
+  {
+    category: "Fast Food Legends",
+    promptA: "McDonald's Golden Arches",
+    promptB: "Cat Ears Headband",
+    hint: "Giant twin rounded yellow arches shaped like the letter M"
+  },
+  {
+    category: "Tech Gadgets",
+    promptA: "Apple AirPods",
+    promptB: "Electric Toothbrush",
+    hint: "White stick earbuds with round tops and hanging stems"
+  },
+  {
+    category: "Smartphones",
+    promptA: "iPhone with 3 Cameras",
+    promptB: "Kitchen Stove Cooktop",
+    hint: "Tall rectangle with a 3-circle triangle camera bump"
+  },
+  {
+    category: "Superheroes",
+    promptA: "Batman Mask",
+    promptB: "Cat Ears Headband",
+    hint: "Pointed bat ears sticking up on a masked cowl"
+  },
+  {
+    category: "Marvel Heroes",
+    promptA: "Spider-Man Eyes",
+    promptB: "Deadpool Mask",
+    hint: "Angled triangular white eye patches with thick black outlines"
+  },
+  {
+    category: "Marvel Universe",
+    promptA: "Captain America Shield",
+    promptB: "Dartboard Target",
+    hint: "Concentric circular rings with a central 5-pointed star"
+  },
+  {
+    category: "Norse Gods",
+    promptA: "Thor's Hammer",
+    promptB: "Meat Mallet",
+    hint: "Heavy rectangular block head on a wrapped handle"
+  },
+  {
+    category: "Comic Legends",
+    promptA: "Superman 'S' Shield",
+    promptB: "Precious Diamond",
+    hint: "Five-sided pentagon diamond crest with an S-curve inside"
+  },
+  {
+    category: "Cartoon Legends",
+    promptA: "SpongeBob SquarePants",
+    promptB: "Slice of Swiss Cheese",
+    hint: "Square body covered with scattered circular holes"
+  },
+  {
+    category: "Pokemon Friends",
+    promptA: "Pikachu Ears & Face",
+    promptB: "Easter Bunny",
+    hint: "Long pointed black-tipped ears and chubby round cheeks"
+  },
+  {
+    category: "Sci-Fi Weapons",
+    promptA: "Star Wars Lightsaber",
+    promptB: "Glowing Laser Pointer",
+    hint: "Straight cylinder handle with a long glowing laser beam"
+  },
+  {
+    category: "Sci-Fi Cute",
+    promptA: "Baby Yoda (Grogu)",
+    promptB: "Mogwai Gremlin",
+    hint: "Small round head with giant long horizontal pointy ears"
+  },
+  {
+    category: "Wizarding World",
+    promptA: "Harry Potter Round Glasses",
+    promptB: "Bicycle Wheels",
+    hint: "Two perfect circles connected with a bridge and lightning scar"
+  },
+  {
+    category: "Snack Mascot",
+    promptA: "Pringles Mustache Man",
+    promptB: "Monopoly Uncle",
+    hint: "Egg-shaped bald head with a giant bushy mustache"
+  },
+  {
+    category: "Coffee Obsession",
+    promptA: "Starbucks Coffee Cup",
+    promptB: "Cup with Straw",
+    hint: "Tall paper cup with a round circular siren logo"
+  },
+  {
+    category: "Anime Heroes",
+    promptA: "Naruto Leaf Headband",
+    promptB: "Wristwatch with Plate",
+    hint: "Forehead cloth strap with a metal rectangular plate"
+  },
+  {
+    category: "Internet Doge",
+    promptA: "Doge Shiba Inu",
+    promptB: "Red Fox Face",
+    hint: "Pointed fox-like triangle ears with a smiling snout"
+  },
+  {
+    category: "Retro Gaming",
+    promptA: "Nintendo Game Boy",
+    promptB: "Pocket Calculator",
+    hint: "Rectangular brick console with screen on top and cross D-pad"
+  },
+  {
+    category: "Classic Soda",
+    promptA: "Coca-Cola Bottle",
+    promptB: "Bowling Pin",
+    hint: "Tall bottle with curved pinched waist and bottle cap"
+  },
+  {
+    category: "Mushroom Kingdom",
+    promptA: "Super Mario Cap",
+    promptB: "Baker's Puffy Hat",
+    hint: "Rounded puffy cap with front visor and round circle logo"
+  },
+  {
+    category: "Mario Power-Up",
+    promptA: "Super Mario Mushroom",
+    promptB: "Spotted Umbrella",
+    hint: "Round dome mushroom cap with big circular white spots"
+  },
+  {
+    category: "Alien Mystery",
+    promptA: "Flying UFO Saucer",
+    promptB: "Mexican Sombrero",
+    hint: "Wide disc saucer with a glowing glass cockpit dome on top"
+  },
+  {
+    category: "Sweet Treats",
+    promptA: "Ice Cream Swirl Cone",
+    promptB: "Poop Emoji",
+    hint: "Swirled spiral peak sitting on a pointed wafer cone"
+  },
+  {
+    category: "Trendy Boba",
+    promptA: "Boba Milk Tea",
+    promptB: "Cup of Bubble Pearls",
+    hint: "Clear tall cup with dark tapioca spheres at the bottom and thick straw"
+  },
+  {
+    category: "Cinema Snacks",
+    promptA: "Movie Popcorn Bucket",
+    promptB: "Fries in a Carton",
+    hint: "Striped bucket with fluffy rounded popcorn spilling out"
+  },
+  {
+    category: "Popular Emojis",
+    promptA: "Laughing Crying Emoji",
+    promptB: "Melting Ice Cream Face",
+    hint: "Round face with closed squinting eyes and giant blue tear drops"
+  },
+  {
+    category: "Sneaker Culture",
+    promptA: "Nike Sneaker",
+    promptB: "Shark Fin in Water",
+    hint: "Athletic shoe with a dynamic swoosh checkmark on the side"
+  },
+  {
+    category: "Music & Beats",
+    promptA: "DJ Headphones",
+    promptB: "Stethoscope",
+    hint: "Two padded circular ear cups connected by an arched headband"
+  },
+  {
+    category: "Winter Buddies",
+    promptA: "Snowman with Carrot",
+    promptB: "Stacked Bowling Balls",
+    hint: "Two stacked round balls with stick arms and a pointed carrot nose"
+  },
+  {
+    category: "Fast Food Favorites",
+    promptA: "Cheeseburger with Sesame",
+    promptB: "Flying UFO",
+    hint: "Two rounded buns sandwiching a patty, cheese, and lettuce"
+  },
+  {
+    category: "Breakfast Classics",
+    promptA: "Stack of Pancakes",
+    promptB: "Tower of Coins",
+    hint: "Flat round discs stacked with melting butter cube on top"
+  },
+  {
+    category: "Summer Fun",
+    promptA: "Inflatable Flamingo Float",
+    promptB: "Musical Saxophone",
+    hint: "Round donut ring with long curving S-shaped neck and beak"
+  },
+  {
+    category: "Cute Pets",
+    promptA: "Hamster in a Wheel",
+    promptB: "Ferris Wheel",
+    hint: "Round circular running wheel with little chubby creature inside"
   }
 ];
 
