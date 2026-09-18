@@ -84,10 +84,10 @@ export const GameOverPodium = () => {
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-black/40 border-2 overflow-hidden shrink-0 shadow-lg"
                 style={{ borderColor: secondPlace.color }}
               >
-                <PlayerAvatar avatar={secondPlace.avatar} name={secondPlace.name} />
+                <PlayerAvatar avatar={secondPlace.avatar} name={secondPlace.name || 'Artist'} />
               </div>
               <div className="text-center truncate w-full">
-                <div className="font-semibold text-xs text-white truncate">{secondPlace.name}</div>
+                <div className="font-semibold text-xs text-white truncate">{secondPlace.name || 'Artist'}</div>
                 <div className="font-mono text-[11px] text-white/50">{secondPlace.score} pts</div>
               </div>
               <div className="w-full h-20 bg-white/[0.07] backdrop-blur-md rounded-t-2xl border-t border-white/20 flex items-center justify-center text-white/80 font-bold text-sm shadow-inner">
@@ -103,10 +103,10 @@ export const GameOverPodium = () => {
                 className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl bg-black/40 border-2 overflow-hidden shrink-0 shadow-xl ring-2 ring-amber-400/40"
                 style={{ borderColor: firstPlace.color }}
               >
-                <PlayerAvatar avatar={firstPlace.avatar} name={firstPlace.name} />
+                <PlayerAvatar avatar={firstPlace.avatar} name={firstPlace.name || 'Artist'} />
               </div>
               <div className="text-center truncate w-full">
-                <div className="font-bold text-sm text-white truncate">{firstPlace.name}</div>
+                <div className="font-bold text-sm text-white truncate">{firstPlace.name || 'Artist'}</div>
                 <div className="font-mono font-semibold text-xs text-amber-300">{firstPlace.score} pts</div>
               </div>
               <div className="w-full h-28 bg-gradient-to-b from-amber-500/20 to-white/[0.08] backdrop-blur-md rounded-t-2xl border-t border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-lg shadow-inner">
@@ -122,10 +122,10 @@ export const GameOverPodium = () => {
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-black/40 border-2 overflow-hidden shrink-0 shadow-lg"
                 style={{ borderColor: thirdPlace.color }}
               >
-                <PlayerAvatar avatar={thirdPlace.avatar} name={thirdPlace.name} />
+                <PlayerAvatar avatar={thirdPlace.avatar} name={thirdPlace.name || 'Artist'} />
               </div>
               <div className="text-center truncate w-full">
-                <div className="font-semibold text-xs text-white truncate">{thirdPlace.name}</div>
+                <div className="font-semibold text-xs text-white truncate">{thirdPlace.name || 'Artist'}</div>
                 <div className="font-mono text-[11px] text-white/50">{thirdPlace.score} pts</div>
               </div>
               <div className="w-full h-16 bg-white/[0.05] backdrop-blur-md rounded-t-2xl border-t border-white/15 flex items-center justify-center text-white/60 font-bold text-sm shadow-inner">
@@ -153,9 +153,9 @@ export const GameOverPodium = () => {
                   className="w-7 h-7 rounded-lg overflow-hidden shrink-0 flex items-center justify-center bg-black/30 border shadow-inner"
                   style={{ borderColor: player.color }}
                 >
-                  <PlayerAvatar avatar={player.avatar} name={player.name} />
+                  <PlayerAvatar avatar={player.avatar} name={player.name || 'Artist'} />
                 </div>
-                <span className="font-semibold text-white">{player.name}</span>
+                <span className="font-semibold text-white">{player.name || 'Artist'}</span>
               </div>
               <span className="font-mono font-semibold text-white/80">
                 {player.score} pts

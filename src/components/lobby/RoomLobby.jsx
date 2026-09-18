@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Sliders, Play, Users, Clock, Flame, ShieldAlert, Share2, Hourglass, Grid } from 'lucide-react';
+import { Copy, Check, Sliders, Play, Users, Clock, Flame, ShieldAlert, Share2, Hourglass, Grid, Globe, Lock } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { SettingsModal } from './SettingsModal';
 import { PlayerGridSkeleton } from '../common/SkeletonLoader';
@@ -114,6 +114,15 @@ export const RoomLobby = () => {
               <h2 className="text-sm font-semibold text-white drop-shadow-sm">
                 Connected Players
               </h2>
+              {roomState.isPublic ? (
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 flex items-center gap-0.5">
+                  <Globe className="w-2.5 h-2.5" /> Public
+                </span>
+              ) : (
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white/60 border border-white/15 flex items-center gap-0.5">
+                  <Lock className="w-2.5 h-2.5" /> Private
+                </span>
+              )}
             </div>
             <span className="font-mono text-xs px-2.5 py-0.5 rounded bg-black/25 text-white/80 border border-white/15">
               {roomState.players.length} / {roomState.maxPlayers}
@@ -137,13 +146,13 @@ export const RoomLobby = () => {
                       className="w-10 h-10 rounded-xl flex items-center justify-center bg-black/20 border overflow-hidden shrink-0 shadow-inner"
                       style={{ borderColor: player.color }}
                     >
-                      <PlayerAvatar avatar={player.avatar} name={player.name} />
+                      <PlayerAvatar avatar={player.avatar} name={player.name || 'Artist'} />
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-xs text-white truncate max-w-[120px] drop-shadow-sm">
-                          {player.name}
+                        <span className="font-semibold text-xs text-white truncate max-w-[120px] drop-shadow-sm min-w-0">
+                          {player.name || 'Artist'}
                         </span>
                         {isMe && (
                           <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/20 text-white font-medium border border-white/10">

@@ -603,11 +603,11 @@ export const DrawingPhase = () => {
               >
                 <div
                   className="w-4 h-4 rounded-md flex items-center justify-center bg-black/30 border overflow-hidden shrink-0"
-                  style={{ borderColor: player.color }}
+                  style={{ borderColor: player.color || '#444' }}
                 >
-                  <PlayerAvatar avatar={player.avatar} name={player.name} />
+                  <PlayerAvatar avatar={player.avatar} name={player.name || 'Artist'} />
                 </div>
-                <span className="truncate max-w-[55px] font-medium">{player.name}</span>
+                <span className="truncate max-w-[55px] font-medium min-w-0">{player.name || 'Artist'}</span>
                 {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />}
                 {hasCompleted && <CheckCircle2 className="w-2.5 h-2.5 text-white/60 shrink-0" />}
               </div>
@@ -690,13 +690,13 @@ export const DrawingPhase = () => {
                       </span>
                       <div
                         className="w-6 h-6 rounded-lg flex items-center justify-center bg-black/30 border overflow-hidden shrink-0 shadow-inner"
-                        style={{ borderColor: player.color }}
+                        style={{ borderColor: player.color || '#444' }}
                       >
-                        <PlayerAvatar avatar={player.avatar} name={player.name} />
+                        <PlayerAvatar avatar={player.avatar} name={player.name || 'Artist'} />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-1 font-medium text-white">
-                          <span className="truncate max-w-[80px] text-[11px] drop-shadow-sm">{player.name}</span>
+                          <span className="truncate max-w-[80px] text-[11px] drop-shadow-sm min-w-0">{player.name || 'Artist'}</span>
                           {isMe && <span className="text-[9px] text-white/60 font-mono">(You)</span>}
                         </div>
                         <div className="flex items-center gap-1 text-[9px] text-white/60 font-mono">
@@ -789,11 +789,11 @@ export const DrawingPhase = () => {
                         className="w-7 h-7 rounded-lg flex items-center justify-center bg-black/40 border overflow-hidden shrink-0 shadow-inner"
                         style={{ borderColor: p.color }}
                       >
-                        <PlayerAvatar avatar={p.avatar} name={p.name} />
+                        <PlayerAvatar avatar={p.avatar} name={p.name || 'Artist'} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold text-white truncate flex items-center gap-1">
-                          <span>{p.name}</span>
+                          <span>{p.name || 'Artist'}</span>
                           {isSelf && (
                             <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-white/20 text-white font-semibold border border-white/20">
                               You
@@ -908,13 +908,13 @@ export const DrawingPhase = () => {
                         className="w-8 h-8 rounded-xl flex items-center justify-center bg-black/40 border-2 overflow-hidden shrink-0 shadow-inner"
                         style={{ borderColor: player.color }}
                       >
-                        <PlayerAvatar avatar={player.avatar} name={player.name} />
+                        <PlayerAvatar avatar={player.avatar} name={player.name || 'Artist'} />
                       </div>
 
                       {/* Player Details */}
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 font-medium text-white">
-                          <span className="truncate max-w-[120px] text-xs font-semibold">{player.name}</span>
+                          <span className="truncate max-w-[120px] text-xs font-semibold">{player.name || 'Artist'}</span>
                           {isMe && (
                             <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 font-semibold">
                               You

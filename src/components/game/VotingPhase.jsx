@@ -178,13 +178,13 @@ export const VotingPhase = () => {
                         className="w-10 h-10 rounded-xl flex items-center justify-center bg-black/30 border overflow-hidden shadow-inner"
                         style={{ borderColor: player.color }}
                       >
-                        <PlayerAvatar avatar={player.avatar} name={player.name} />
+                        <PlayerAvatar avatar={player.avatar} name={player.name || 'Artist'} />
                       </div>
                       {/* Avatar corner thumb badge when voted */}
                       {isPlayerVoted && (
                         <div
                           className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border border-black/60 flex items-center justify-center text-[9px] shadow-sm animate-scaleIn"
-                          title={`${player.name} has cast vote`}
+                          title={`${player.name || 'Artist'} has cast vote`}
                         >
                           👍
                         </div>
@@ -192,7 +192,7 @@ export const VotingPhase = () => {
                     </div>
                     <div className="min-w-0">
                       <div className="font-semibold text-sm text-white group-hover:text-white transition flex items-center gap-1.5 flex-wrap">
-                        <span className="truncate">{player.name}</span>
+                        <span className="truncate">{player.name || 'Artist'}</span>
                         {isMe && (
                           <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-white/20 text-white border border-white/10 shrink-0">
                             You
@@ -202,7 +202,7 @@ export const VotingPhase = () => {
                         {isPlayerVoted ? (
                           <span
                             className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-mono font-medium shrink-0 shadow-sm animate-fadeIn"
-                            title={`${player.name} has voted`}
+                            title={`${player.name || 'Artist'} has voted`}
                           >
                             <ThumbsUp className="w-2.5 h-2.5 text-emerald-400 stroke-[2.5]" />
                             <span>Voted</span>

@@ -10,7 +10,9 @@ import {
   Hourglass,
   Grid,
   Circle,
-  Square
+  Square,
+  Globe,
+  Lock
 } from 'lucide-react';
 import { useGameSocket } from '../../context/SocketContext';
 import { playClick } from '../../utils/sound';
@@ -25,6 +27,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
   const [votingDuration, setVotingDuration] = useState(roomState?.votingDuration || 30);
   const [maxRounds, setMaxRounds] = useState(roomState?.maxRounds || 5);
   const [whiteboardPattern, setWhiteboardPattern] = useState(roomState?.whiteboardPattern || 'dotted');
+  const [isPublic, setIsPublic] = useState(roomState?.isPublic || false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
       if (roomState.votingDuration !== undefined) setVotingDuration(roomState.votingDuration);
       if (roomState.maxRounds !== undefined) setMaxRounds(roomState.maxRounds);
       if (roomState.whiteboardPattern !== undefined) setWhiteboardPattern(roomState.whiteboardPattern);
+      if (roomState.isPublic !== undefined) setIsPublic(roomState.isPublic);
     }
   }, [roomState, isOpen]);
 
@@ -57,7 +61,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
         intermissionDuration: Number(intermissionDuration),
         votingDuration: Number(votingDuration),
         maxRounds: Number(maxRounds),
-        whiteboardPattern
+        whiteboardPattern,
+        isPublic
       });
       onClose();
     } catch (e) {
@@ -76,6 +81,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
     setVotingDuration(30);
     setMaxRounds(5);
     setWhiteboardPattern('dotted');
+    setIsPublic(false);
   };
 
   return (
@@ -324,6 +330,48 @@ export const SettingsModal = ({ isOpen, onClose }) => {
             </div>
             <p className="text-[9px] text-white/45 text-center pt-0.5">
               Synced to all players in the room during drawing & voting.
+            </p>
+          </div>
+
+          {/* Lobby Visibility */}
+          <div className="space-y-1 p-2.5 rounded-xl bg-black/25 border border-white/15 backdrop-blur">
+            <div className="flex items-center justify-between text-[11px]">
+              <label className="font-medium text-white flex items-center gap-1.5 drop-shadow-sm">
+                <Globe className="w-3 h-3 text-emerald-300" />
+                <span>Lobby Visibility</span>
+              </label>
+              <span className={`font-mono text-[11px] px-2 py-0.5 rounded-md border font-bold shadow-inner ${isPublic ? 'text-emerald-300 bg-emerald-900/30 border-emerald-400/30' : 'text-white bg-black/40 border-white/20'}`}>
+                {isPublic ? 'Public' : 'Private'}
+              </span>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => { playClick(); setIsPublic(false); }}
+                className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer border ${
+                  !isPublic
+                    ? 'bg-white/15 border-white/30 text-white'
+                    : 'bg-transparent border-transparent text-white/50 hover:text-white/80'
+                }`}
+              >
+                <Lock className="w-3 h-3" />
+                Private
+              </button>
+              <button
+                type="button"
+                onClick={() => { playClick(); setIsPublic(true); }}
+                className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer border ${
+                  isPublic
+                    ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300'
+                    : 'bg-transparent border-transparent text-white/50 hover:text-white/80'
+                }`}
+              >
+                <Globe className="w-3 h-3" />
+                Public
+              </button>
+            </div>
+            <p className="text-[9px] text-white/45 text-center pt-0.5">
+              {isPublic ? 'Room will appear in the Play Online matchmaking queue.' : 'Only players with the room code can join.'}
             </p>
           </div>
         </div>

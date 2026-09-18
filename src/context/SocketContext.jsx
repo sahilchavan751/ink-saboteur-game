@@ -9,11 +9,15 @@ import {
   onChildAdded,
   push,
   onDisconnect,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  orderByChild,
+  equalTo
 } from 'firebase/database';
 import { db } from '../firebase';
 import { getRandomPromptPair, getShuffledPromptPair } from '../utils/promptBank';
 import { playStrokeSound, playTick, playReveal } from '../utils/sound';
+import { AVATARS } from '../utils/colors';
 
 const GameContext = createContext(null);
 
@@ -473,12 +477,9 @@ export const SocketProvider = ({ children }) => {
       const rawPlayers = data.players || {};
       const playerIds = Object.keys(rawPlayers);
 
-      // Auto-delete room only after 30 minutes of complete inactivity to prevent nuking rooms during AFK
+      // Auto-delete room immediately when all players have left (session cleanup)
       if (playerIds.length === 0) {
-        const lastAct = data.lastActivity || 0;
-        if (Date.now() - lastAct > 30 * 60 * 1000) {
-          remove(roomRef);
-        }
+        remove(roomRef);
         return;
       }
 
@@ -552,6 +553,9 @@ export const SocketProvider = ({ children }) => {
         };
       });
 
+      // Filter turnOrder to only include players still in the room
+      const liveTurnOrder = (data.turnOrder || playerIds).filter((pid) => playerIds.includes(pid));
+
       setRoomState({
         code: data.code,
         phase: data.phase,
@@ -561,13 +565,14 @@ export const SocketProvider = ({ children }) => {
         drawChances: data.drawChances || 2,
         currentChance: Math.min(
           data.drawChances || 2,
-          Math.floor((data.currentTurnIndex || 0) / Math.max(1, (data.turnOrder || playerIds).length)) + 1
+          Math.floor((data.currentTurnIndex || 0) / Math.max(1, liveTurnOrder.length)) + 1
         ),
-        totalTurns: Math.max(1, (data.turnOrder || playerIds).length) * (data.drawChances || 2),
+        totalTurns: Math.max(1, liveTurnOrder.length) * (data.drawChances || 2),
         votingDuration: data.votingDuration || 30,
         intermissionDuration: data.intermissionDuration || 5,
         maxPlayers: data.maxPlayers || 8,
-        turnOrder: data.turnOrder || playerIds,
+        isPublic: data.isPublic !== false,
+        turnOrder: liveTurnOrder,
         currentTurnIndex: data.currentTurnIndex || 0,
         activePlayerId: data.activePlayerId || data.hostId,
         turnTimeRemaining: data.turnTimeRemaining ?? data.turnDuration ?? 10,
@@ -598,6 +603,8 @@ export const SocketProvider = ({ children }) => {
         isTieBreaker: !!data.isTieBreaker,
         citizenPrompt: data.citizenPrompt || '',
         saboteurPrompt: data.saboteurPrompt || '',
+        hostName: rawPlayers[data.hostId]?.name || 'Host',
+        hostAvatar: rawPlayers[data.hostId]?.avatar || '/avatar/dino.webp',
         players: publicPlayers
       });
 
@@ -678,7 +685,7 @@ export const SocketProvider = ({ children }) => {
   }, [roomCode, myPlayerId, runPhaseTimer]);
 
   // Actions
-  const createRoom = useCallback(async (hostName, color, avatar) => {
+  const createRoom = useCallback(async (hostName, color, avatar, isPublic = false) => {
     setError(null);
     setFirebaseRuleAlert(false);
     setLoadingRoom(true);
@@ -701,6 +708,7 @@ export const SocketProvider = ({ children }) => {
       maxPlayers: 8,
       timeRemaining: 0,
       whiteboardPattern: 'dotted',
+      isPublic: !!isPublic,
       usedPrompts: [],
       players: {
         [myPlayerId]: {
@@ -844,7 +852,7 @@ export const SocketProvider = ({ children }) => {
 
   const updateSettings = useCallback(async (settings) => {
     if (!roomCode || !isHostRef.current) return;
-    await update(ref(db, `rooms/${roomCode}`), {
+    const updates = {
       maxPlayers: Number(settings.maxPlayers),
       turnDuration: Number(settings.turnDuration),
       drawChances: Number(settings.drawChances || 2),
@@ -853,7 +861,11 @@ export const SocketProvider = ({ children }) => {
       maxRounds: Number(settings.maxRounds),
       whiteboardPattern: settings.whiteboardPattern || 'dotted',
       lastActivity: Date.now()
-    });
+    };
+    if (settings.isPublic !== undefined) {
+      updates.isPublic = !!settings.isPublic;
+    }
+    await update(ref(db, `rooms/${roomCode}`), updates);
     return { success: true };
   }, [roomCode]);
 
@@ -1027,33 +1039,61 @@ export const SocketProvider = ({ children }) => {
 
   const leaveRoom = useCallback(async (options = {}) => {
     const codeToLeave = roomCodeRef.current || roomCode;
+
+    // Immediately clear local state so UI exits instantly
+    roomCodeRef.current = null;
+    setRoomCode(null);
+    setRoomState(null);
+    setStrokes([]);
+    currentStrokesRef.current = [];
+    setRoundGallery([]);
+    try { if (codeToLeave) sessionStorage.removeItem(`inkspy_gallery_${codeToLeave}`); } catch (e) {}
+    setRemoteCursors({});
+    setChatMessages([]);
+    if (tickerRef.current) clearInterval(tickerRef.current);
+
     if (codeToLeave) {
       try {
         const roomRef = ref(db, `rooms/${codeToLeave}`);
-        const playersRef = ref(db, `rooms/${codeToLeave}/players`);
-        const snap = await get(playersRef);
+        const snap = await get(roomRef);
 
         if (snap.exists()) {
-          const players = snap.val() || {};
+          const data = snap.val();
+          const players = data.players || {};
           const remainingKeys = Object.keys(players).filter((k) => k !== myPlayerId);
 
-          if (remainingKeys.length === 0) {
+          if (remainingKeys.length === 0 || (isHostRef.current && data.phase === 'GAME_OVER')) {
             await remove(roomRef);
           } else {
             await remove(ref(db, `rooms/${codeToLeave}/players/${myPlayerId}`));
             await remove(ref(db, `rooms/${codeToLeave}/cursors/${myPlayerId}`));
 
-            if (isHostRef.current && remainingKeys.length > 0) {
+            const leaveUpdates = { lastActivity: Date.now() };
+
+            // Transfer host if leaving player is host
+            if (isHostRef.current) {
               const nextHostId = remainingKeys[0];
-              await update(roomRef, {
-                hostId: nextHostId,
-                [`players/${nextHostId}/isHost`]: true,
-                lastActivity: Date.now()
-              });
+              leaveUpdates.hostId = nextHostId;
+              leaveUpdates[`players/${nextHostId}/isHost`] = true;
             }
+
+            // Clean departed player from turnOrder
+            if (data.turnOrder) {
+              const cleanedTurnOrder = data.turnOrder.filter((pid) => pid !== myPlayerId);
+              if (cleanedTurnOrder.length > 0) {
+                leaveUpdates.turnOrder = cleanedTurnOrder;
+              }
+
+              // If it was the departing player's turn during DRAWING, advance turn
+              if (data.phase === 'DRAWING' && data.activePlayerId === myPlayerId && cleanedTurnOrder.length > 0) {
+                const nextIdx = (data.currentTurnIndex || 0) % cleanedTurnOrder.length;
+                leaveUpdates.activePlayerId = cleanedTurnOrder[nextIdx];
+                leaveUpdates.turnTimeRemaining = data.turnDuration || 10;
+              }
+            }
+
+            await update(roomRef, leaveUpdates);
           }
-        } else {
-          await remove(roomRef);
         }
       } catch (err) {
         console.warn('Leave room cleanup error:', err);
@@ -1067,17 +1107,6 @@ export const SocketProvider = ({ children }) => {
         }
       } catch (e) {}
     }
-
-    roomCodeRef.current = null;
-    setRoomCode(null);
-    setRoomState(null);
-    setStrokes([]);
-    currentStrokesRef.current = [];
-    setRoundGallery([]);
-    try { if (codeToLeave) sessionStorage.removeItem(`inkspy_gallery_${codeToLeave}`); } catch (e) {}
-    setRemoteCursors({});
-    setChatMessages([]);
-    if (tickerRef.current) clearInterval(tickerRef.current);
   }, [roomCode, myPlayerId]);
 
   // Keep roomCodeRef in sync and manage browser history pushState
@@ -1151,6 +1180,122 @@ export const SocketProvider = ({ children }) => {
     }
   }, [roomCode, myPlayerId, roomState]);
 
+  // Subscribe to public rooms for matchmaking queue
+  const subscribePublicRooms = useCallback((callback) => {
+    const roomsRef = ref(db, 'rooms');
+    const unsubscribe = onValue(roomsRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        callback([]);
+        return;
+      }
+      const allRooms = snapshot.val();
+      const publicRooms = [];
+      const now = Date.now();
+      Object.entries(allRooms).forEach(([code, room]) => {
+        if (
+          room.isPublic &&
+          room.phase === 'LOBBY' &&
+          room.players &&
+          Object.keys(room.players).length < (room.maxPlayers || 8) &&
+          (now - (room.lastActivity || 0)) < 5 * 60 * 1000
+        ) {
+          const playersList = Object.values(room.players);
+          publicRooms.push({
+            code: room.code,
+            hostName: playersList.find((p) => p.isHost)?.name || 'Host',
+            hostAvatar: playersList.find((p) => p.isHost)?.avatar || '/avatar/dino.webp',
+            playerCount: playersList.length,
+            maxPlayers: room.maxPlayers || 8,
+            players: playersList.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar, color: p.color })),
+            lastActivity: room.lastActivity || 0
+          });
+        }
+      });
+      // Sort by most players first (closest to starting)
+      publicRooms.sort((a, b) => b.playerCount - a.playerCount);
+      callback(publicRooms);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Join a random public room queue or create a new public room
+  const joinRandomQueue = useCallback(async (playerName, color, avatar) => {
+    setError(null);
+    setFirebaseRuleAlert(false);
+    setLoadingRoom(true);
+
+    try {
+      // Fetch all rooms and find available public ones
+      const roomsSnap = await get(ref(db, 'rooms'));
+      let bestRoom = null;
+      const now = Date.now();
+
+      if (roomsSnap.exists()) {
+        const allRooms = roomsSnap.val();
+        let bestCount = -1;
+
+        Object.entries(allRooms).forEach(([code, room]) => {
+          if (
+            room.isPublic &&
+            room.phase === 'LOBBY' &&
+            room.players &&
+            Object.keys(room.players).length < (room.maxPlayers || 8) &&
+            (now - (room.lastActivity || 0)) < 5 * 60 * 1000
+          ) {
+            const count = Object.keys(room.players).length;
+            // Pick the room with most players (closest to starting)
+            if (count > bestCount) {
+              // Check avatar conflict
+              const takenAvatars = Object.values(room.players)
+                .filter((p) => p.id !== myPlayerId)
+                .map((p) => p.avatar);
+              const chosenAvatar = avatar || '/avatar/dino.webp';
+              if (!takenAvatars.includes(chosenAvatar)) {
+                bestRoom = room;
+                bestCount = count;
+              } else {
+                // Try to find a free avatar
+                const allAvatarSrcs = AVATARS.map((a) => a.src);
+                const freeAvatar = allAvatarSrcs.find((src) => !takenAvatars.includes(src));
+                if (freeAvatar) {
+                  bestRoom = { ...room, _resolvedAvatar: freeAvatar };
+                  bestCount = count;
+                }
+              }
+            }
+          }
+        });
+      }
+
+      if (bestRoom) {
+        // Join the best available room
+        const resolvedAvatar = bestRoom._resolvedAvatar || avatar || '/avatar/dino.webp';
+        setLoadingRoom(false);
+        return await joinRoom(bestRoom.code, playerName, color, resolvedAvatar);
+      } else {
+        // No public room available — create a new public one
+        setLoadingRoom(false);
+        return await createRoom(playerName, color, avatar, true);
+      }
+    } catch (err) {
+      setLoadingRoom(false);
+      setError(err.message);
+      throw err;
+    }
+  }, [myPlayerId, joinRoom, createRoom]);
+
+  // Cleanup room from Firebase (for session end)
+  const cleanupRoom = useCallback(async () => {
+    const codeToClean = roomCodeRef.current || roomCode;
+    if (codeToClean) {
+      try {
+        await remove(ref(db, `rooms/${codeToClean}`));
+      } catch (err) {
+        console.warn('Room cleanup error:', err);
+      }
+    }
+  }, [roomCode]);
+
   return (
     <GameContext.Provider
       value={{
@@ -1181,7 +1326,10 @@ export const SocketProvider = ({ children }) => {
         nextRound,
         playAgain,
         leaveRoom,
-        wipeCanvas
+        wipeCanvas,
+        subscribePublicRooms,
+        joinRandomQueue,
+        cleanupRoom
       }}
     >
       {children}
